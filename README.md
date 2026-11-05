@@ -226,7 +226,7 @@ L'architecture du code est décrite dans [ARCHITECTURE.md](ARCHITECTURE.md). Les
 
 ## Crédits et licences
 
-Créé par **Painful Fit**, avec l'aide de **[Claude](https://claude.ai)**, l'assistant IA d'Anthropic.
+Créé par **Painfullfeet**, avec l'aide de **[Claude](https://claude.ai)**, l'assistant IA d'Anthropic.
 
 | Élément | Source | Licence |
 |---|---|---|
@@ -250,5 +250,5 @@ Shazim est un logiciel libre distribué sous licence **[GNU GPL v3](LICENSE)**.
 <div align="center">
 <sub>Mots-clés : reconnaissance musicale PC · identifier une chanson sur Windows · Shazam pour PC · trouver le titre d'une musique · audio fingerprinting · music recognition Windows · song identifier desktop</sub>
 <br><br>
-<sub>Fait avec ❤ par Painful Fit · Si Shazim t'est utile, laisse une ⭐ !</sub>
+<sub>Fait avec ❤ par Painfullfeet · Si Shazim t'est utile, laisse une ⭐ !</sub>
 </div>

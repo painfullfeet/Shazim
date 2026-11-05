@@ -127,7 +127,7 @@
                         <Run Text="Shazim"/>
                         <Run Text=" · "/>
                         <Run Text="{infra:T about.made_by}"/>
-                        <Run Text="Painful Fit" Foreground="{StaticResource PaperBrush}" FontWeight="Bold"/>
+                        <Run Text="Painfullfeet" Foreground="{StaticResource PaperBrush}" FontWeight="Bold"/>
                         <Run Text=" · GPL-3.0"/>
                     </TextBlock>
                 </StackPanel>

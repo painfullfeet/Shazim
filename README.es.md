@@ -111,7 +111,7 @@ cd Shazim
 
 ## Créditos y licencias
 
-Creado por **Painful Fit**, con la ayuda de **[Claude](https://claude.ai)**, el asistente de IA de Anthropic.
+Creado por **Painfullfeet**, con la ayuda de **[Claude](https://claude.ai)**, el asistente de IA de Anthropic.
 
 Algoritmo de firma: portado de [SongRec](https://github.com/marin-m/SongRec) (GPL-3.0) · Audio: [NAudio](https://github.com/naudio/NAudio) (MIT) · Fuente: [Outfit](https://github.com/Outfitio/Outfit-Fonts) (SIL OFL) · Iconos: [Phosphor](https://phosphoricons.com) (MIT).
 

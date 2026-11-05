@@ -186,7 +186,7 @@ public static class Installer
         using var key = Registry.CurrentUser.CreateSubKey(UninstallKey);
         key.SetValue("DisplayName", "Shazim");
         key.SetValue("DisplayVersion", Version);
-        key.SetValue("Publisher", "Painful Fit");
+        key.SetValue("Publisher", "Painfullfeet");
         key.SetValue("DisplayIcon", InstalledExe + ",0");
         key.SetValue("InstallLocation", InstallDir);
         key.SetValue("UninstallString", $"\"{InstalledExe}\" {UninstallArg}");

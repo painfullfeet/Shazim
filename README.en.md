@@ -219,7 +219,7 @@ The code architecture is described in [ARCHITECTURE.md](ARCHITECTURE.md) (French
 
 ## Credits and licences
 
-Made by **Painful Fit**, with the help of **[Claude](https://claude.ai)**, Anthropic's AI assistant.
+Made by **Painfullfeet**, with the help of **[Claude](https://claude.ai)**, Anthropic's AI assistant.
 
 | Part | Source | Licence |
 |---|---|---|
@@ -243,5 +243,5 @@ Shazim is free software released under the **[GNU GPL v3](LICENSE)**.
 <div align="center">
 <sub>Keywords: music recognition for PC · identify a song on Windows · Shazam for PC · Shazam for Windows alternative · what song is this · audio fingerprinting · song identifier desktop app</sub>
 <br><br>
-<sub>Made with ❤ by Painful Fit · If Shazim helps you, leave a ⭐!</sub>
+<sub>Made with ❤ by Painfullfeet · If Shazim helps you, leave a ⭐!</sub>
 </div>
