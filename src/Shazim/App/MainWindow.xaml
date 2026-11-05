@@ -1,0 +1,151 @@
+<Window x:Class="Shazim.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:infra="clr-namespace:Shazim.App.Infrastructure"
+        Title="Shazim" Width="1120" Height="740" MinWidth="820" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource InkBrush}"
+        FontFamily="{StaticResource BodyFont}"
+        UseLayoutRounding="True" TextOptions.TextFormattingMode="Ideal" TextOptions.TextRenderingMode="ClearType">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="40" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="0" UseAeroCaptionButtons="False"/>
+    </WindowChrome.WindowChrome>
+
+    <Border x:Name="RootBorder">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ===== Barre latérale (rétractable) ===== -->
+            <Border x:Name="Rail" Width="240" Background="{StaticResource NightBrush}" ClipToBounds="True">
+                <Grid Margin="14,0,14,16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Marque + bouton pour réduire -->
+                    <Grid Margin="0,14,0,22" x:Name="BrandRow">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid x:Name="BrandMark" Width="36" Height="36" Margin="6,0,0,0" ToolTip="Shazim">
+                            <Ellipse Fill="{DynamicResource SignalGradientBrush}"/>
+                            <Image x:Name="BrandLogo" Width="16" Height="16" RenderOptions.BitmapScalingMode="HighQuality"/>
+                        </Grid>
+                        <TextBlock x:Name="BrandText" Grid.Column="1" Text="Shazim" Style="{StaticResource DisplayText}" FontSize="22" FontWeight="Bold"
+                                   VerticalAlignment="Center" Margin="12,0,0,1"/>
+                        <Button x:Name="CollapseButton" Grid.Column="2" Style="{StaticResource IconButton}" Tag="{StaticResource IconSidebarSimple}"
+                                Width="36" Height="36" FontSize="18" Click="Collapse_Click" WindowChrome.IsHitTestVisibleInChrome="True"
+                                ToolTip="{infra:T mainwin.reduire_la_barre_laterale_ctrl}" AutomationProperties.Name="{infra:T mainwin.reduire_la_barre_laterale}"/>
+                    </Grid>
+
+                    <!-- Navigation -->
+                    <StackPanel Grid.Row="1" x:Name="NavPanel">
+                        <RadioButton x:Name="NavHome" Style="{StaticResource NavItem}" Tag="{StaticResource IconWaveform}" Content="{infra:T mainwin.ecouter}"
+                                     GroupName="nav" IsChecked="True" Checked="Nav_Checked" AutomationProperties.Name="{infra:T mainwin.ecouter}"/>
+                        <RadioButton x:Name="NavLibrary" Style="{StaticResource NavItem}" Tag="{StaticResource IconBooks}" Content="{infra:T mainwin.bibliotheque}"
+                                     GroupName="nav" Checked="Nav_Checked" AutomationProperties.Name="{infra:T mainwin.bibliotheque}"/>
+                        <RadioButton x:Name="NavSettings" Style="{StaticResource NavItem}" Tag="{StaticResource IconGearSix}" Content="{infra:T mainwin.reglages}"
+                                     GroupName="nav" Checked="Nav_Checked" AutomationProperties.Name="{infra:T mainwin.reglages}"/>
+                    </StackPanel>
+
+                    <!-- Auto Shazim : carte complète -->
+                    <Border x:Name="AutoCard" Grid.Row="3" Background="{StaticResource InkBrush}" CornerRadius="16" Padding="14,12">
+                        <StackPanel>
+                            <ToggleButton x:Name="AutoToggle" Style="{StaticResource Switch}" Click="AutoToggle_Click"
+                                          ToolTip="{infra:T mainwin.identifie_automatiquement_la_musique_en}">
+                                <TextBlock Text="{infra:T mainwin.auto_shazim}" Style="{StaticResource BodyText}" FontWeight="Bold"/>
+                            </ToggleButton>
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <Grid Width="8" Height="8" Margin="0,1,8,0" VerticalAlignment="Center">
+                                    <Ellipse x:Name="AutoPulse" Fill="{DynamicResource SignalBrush}" Opacity="0" RenderTransformOrigin="0.5,0.5">
+                                        <Ellipse.RenderTransform><ScaleTransform/></Ellipse.RenderTransform>
+                                    </Ellipse>
+                                    <Ellipse x:Name="AutoDot" Fill="{StaticResource MistBrush}"/>
+                                </Grid>
+                                <TextBlock x:Name="AutoStatusText" Text="{infra:T mainwin.desactive}" Style="{StaticResource MutedText}" FontSize="12"
+                                           TextWrapping="Wrap" TextTrimming="None" MaxWidth="160"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Auto Shazim : bouton compact quand la barre est réduite -->
+                    <ToggleButton x:Name="AutoMini" Grid.Row="3" Width="44" Height="44" HorizontalAlignment="Center" Visibility="Collapsed"
+                                  Click="AutoMini_Click" Cursor="Hand" AutomationProperties.Name="{infra:T mainwin.auto_shazim}">
+                        <ToggleButton.Template>
+                            <ControlTemplate TargetType="ToggleButton">
+                                <Grid>
+                                    <Ellipse x:Name="Disc" Fill="{StaticResource InkBrush}" Stroke="{StaticResource LineBrush}" StrokeThickness="1"/>
+                                    <infra:IconView x:Name="Glyph" Data="{StaticResource IconWaveform}" Width="20" Height="20" Foreground="{StaticResource MistBrush}"/>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsChecked" Value="True">
+                                        <Setter TargetName="Disc" Property="Fill" Value="{DynamicResource SignalBrush}"/>
+                                        <Setter TargetName="Disc" Property="Stroke" Value="{DynamicResource SignalBrush}"/>
+                                        <Setter TargetName="Glyph" Property="Foreground" Value="White"/>
+                                    </Trigger>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Disc" Property="Opacity" Value="0.85"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </ToggleButton.Template>
+                    </ToggleButton>
+                </Grid>
+            </Border>
+
+            <!-- ===== Contenu ===== -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="40"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+                    <Button Style="{StaticResource CaptionButton}" Tag="{StaticResource IconPictureInPicture}" ToolTip="{infra:T mainwin.mini_lecteur}"
+                            WindowChrome.IsHitTestVisibleInChrome="True" Click="Mini_Click" AutomationProperties.Name="{infra:T mainwin.mini_lecteur}"/>
+                    <Button x:Name="FullButton" Style="{StaticResource CaptionButton}" Tag="{StaticResource IconArrowsOut}" ToolTip="{infra:T mainwin.plein_ecran_f11}"
+                            WindowChrome.IsHitTestVisibleInChrome="True" Click="Full_Click" AutomationProperties.Name="{infra:T mainwin.plein_ecran}"/>
+                    <Button Style="{StaticResource CaptionButton}" Tag="{StaticResource IconMinus}" ToolTip="{infra:T mainwin.reduire}"
+                            WindowChrome.IsHitTestVisibleInChrome="True" Click="Minimize_Click" AutomationProperties.Name="{infra:T mainwin.reduire}"/>
+                    <Button x:Name="MaxButton" Style="{StaticResource CaptionButton}" Tag="{StaticResource IconSquare}" ToolTip="{infra:T mainwin.agrandir}"
+                            WindowChrome.IsHitTestVisibleInChrome="True" Click="Maximize_Click" AutomationProperties.Name="{infra:T mainwin.agrandir}"/>
+                    <Button Style="{StaticResource CloseCaptionButton}" Tag="{StaticResource IconX}" ToolTip="{infra:T mainwin.fermer}"
+                            WindowChrome.IsHitTestVisibleInChrome="True" Click="Close_Click" AutomationProperties.Name="{infra:T mainwin.fermer}"/>
+                </StackPanel>
+
+                <ContentControl x:Name="Host" Grid.Row="1" Focusable="False" RenderTransformOrigin="0.5,0.5">
+                    <ContentControl.RenderTransform><TranslateTransform x:Name="HostShift"/></ContentControl.RenderTransform>
+                </ContentControl>
+            </Grid>
+
+            <!-- ===== Fiche morceau (pop-up) ===== -->
+            <Grid x:Name="DialogLayer" Grid.ColumnSpan="2" Visibility="Collapsed">
+                <Rectangle Fill="#B30A0816" MouseLeftButtonDown="DialogBackdrop_Click"/>
+                <Border x:Name="DialogCard" Background="{StaticResource InkBrush}" CornerRadius="24" BorderBrush="{StaticResource LineBrush}"
+                        BorderThickness="1" Width="760" Margin="40,56,40,40" ClipToBounds="True" RenderTransformOrigin="0.5,0.5" Focusable="True">
+                    <Border.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform x:Name="DialogScale"/>
+                            <TranslateTransform x:Name="DialogShift"/>
+                        </TransformGroup>
+                    </Border.RenderTransform>
+                    <Grid>
+                        <ContentControl x:Name="DialogHost" Focusable="False"/>
+                        <Button Style="{StaticResource IconButton}" Tag="{StaticResource IconX}" FontSize="16" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Margin="0,14,14,0" ToolTip="{infra:T mainwin.fermer_echap}" Click="DialogClose_Click" Background="#40000000"
+                                AutomationProperties.Name="{infra:T mainwin.fermer_la_fiche}"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

@@ -1,0 +1,251 @@
+<UserControl x:Class="Shazim.App.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:infra="clr-namespace:Shazim.App.Infrastructure">
+    <UserControl.Resources>
+        <Style x:Key="RowLabel" TargetType="TextBlock" BasedOn="{StaticResource BodyText}">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="TextTrimming" Value="None"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+        <Style x:Key="RowHint" TargetType="TextBlock" BasedOn="{StaticResource MutedText}">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="TextTrimming" Value="None"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,3,0,0"/>
+            <Setter Property="MaxWidth" Value="330"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+        </Style>
+        <Style x:Key="Row" TargetType="Grid">
+            <Setter Property="Margin" Value="0,9"/>
+        </Style>
+        <Style x:Key="Field" TargetType="FrameworkElement">
+            <Setter Property="Width" Value="300"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
+        <StackPanel Margin="40,4,40,32" MaxWidth="760" HorizontalAlignment="Left">
+            <DockPanel Margin="0,0,0,18">
+                <TextBlock x:Name="SavedText" DockPanel.Dock="Right" Style="{StaticResource MutedText}" VerticalAlignment="Bottom"
+                           Foreground="{StaticResource WaveBrush}" Margin="0,0,0,5" Opacity="0"/>
+                <TextBlock Text="{infra:T mainwin.reglages}" Style="{StaticResource PageTitle}"/>
+            </DockPanel>
+
+            <!-- Source audio -->
+            <TextBlock Text="{infra:T settings.ce_que_shazim_ecoute}" Style="{StaticResource SectionTitle}" Margin="0,0,0,10"/>
+            <Border Style="{StaticResource Panel}" Margin="0,0,0,22">
+                <StackPanel>
+                    <Grid Style="{StaticResource Row}">
+                        <StackPanel Margin="0,0,24,0">
+                            <TextBlock Text="{infra:T mainwin.ecouter}" Style="{StaticResource RowLabel}"/>
+                            <TextBlock Text="{infra:T settings.le_son_du_pc_capte}" Style="{StaticResource RowHint}" MaxWidth="330" HorizontalAlignment="Left"/>
+                        </StackPanel>
+                        <Border Width="300" HorizontalAlignment="Right" VerticalAlignment="Center" Background="{StaticResource InkBrush}" CornerRadius="8" Padding="3">
+                            <UniformGrid Rows="1">
+                                <RadioButton x:Name="SourcePc" Style="{StaticResource SegmentItem}" Content="{infra:T home.son_du_pc}" GroupName="source" Click="Source_Click"/>
+                                <RadioButton x:Name="SourceMic" Style="{StaticResource SegmentItem}" Content="{infra:T settings.micro}" GroupName="source" Click="Source_Click"/>
+                                <RadioButton x:Name="SourceBoth" Style="{StaticResource SegmentItem}" Content="{infra:T settings.les_deux}" GroupName="source" Click="Source_Click"/>
+                            </UniformGrid>
+                        </Border>
+                    </Grid>
+                    <Grid Style="{StaticResource Row}" x:Name="OutputRow">
+                        <TextBlock Text="{infra:T settings.sortie_audio}" Style="{StaticResource RowLabel}"/>
+                        <ComboBox x:Name="OutputCombo" Width="300" HorizontalAlignment="Right" VerticalAlignment="Center" SelectionChanged="Any_Changed" DisplayMemberPath="Name"/>
+                    </Grid>
+                    <Grid Style="{StaticResource Row}" x:Name="MicRow">
+                        <TextBlock Text="{infra:T settings.micro}" Style="{StaticResource RowLabel}"/>
+                        <ComboBox x:Name="MicCombo" Width="300" HorizontalAlignment="Right" VerticalAlignment="Center" SelectionChanged="Any_Changed" DisplayMemberPath="Name"/>
+                    </Grid>
+                    <Grid Style="{StaticResource Row}">
+                        <StackPanel Margin="0,0,24,0">
+                            <TextBlock Text="{infra:T settings.tester_le_son}" Style="{StaticResource RowLabel}"/>
+                            <TextBlock x:Name="TestHint" Text="{infra:T settings.verifie_que_la_source_choisie}" Style="{StaticResource RowHint}" MaxWidth="330" HorizontalAlignment="Left"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <Border Width="180" Height="8" CornerRadius="4" Background="{StaticResource DuskBrush}" VerticalAlignment="Center" Margin="0,0,12,0">
+                                <Border x:Name="LevelBar" HorizontalAlignment="Left" Width="0" CornerRadius="4" Background="{DynamicResource SignalBrush}"/>
+                            </Border>
+                            <Button x:Name="TestButton" Style="{StaticResource SecondaryButton}" Content="{infra:T settings.tester}" Width="108" Click="Test_Click"/>
+                        </StackPanel>
+                    </Grid>
+                    <Grid Style="{StaticResource Row}">
+                        <StackPanel Margin="0,0,24,0">
+                            <TextBlock Text="{infra:T settings.duree_d_ecoute_maximale}" Style="{StaticResource RowLabel}"/>
+                            <TextBlock Text="{infra:T settings.la_recherche_commence_des_4}" Style="{StaticResource RowHint}"/>
+                        </StackPanel>
+                        <ComboBox x:Name="ListenCombo" Width="300" HorizontalAlignment="Right" VerticalAlignment="Center" SelectionChanged="Any_Changed"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Apparence -->
+            <TextBlock Text="{infra:T settings.apparence}" Style="{StaticResource SectionTitle}" Margin="0,0,0,10"/>
+            <Border Style="{StaticResource Panel}" Margin="0,0,0,22">
+                <StackPanel>
+                <Grid Style="{StaticResource Row}">
+                    <StackPanel Margin="0,0,24,0">
+                        <TextBlock Text="{infra:T settings.language}" Style="{StaticResource RowLabel}"/>
+                        <TextBlock Text="{infra:T settings.language_hint}" Style="{StaticResource RowHint}"/>
+                    </StackPanel>
+                    <ComboBox x:Name="LanguageCombo" Width="300" HorizontalAlignment="Right" VerticalAlignment="Center"
+                              AutomationProperties.Name="{infra:T settings.language}"/>
+                </Grid>
+                <Grid Style="{StaticResource Row}">
+                    <StackPanel Margin="0,0,24,0">
+                        <TextBlock Text="{infra:T settings.effet_du_bouton_ecouter}" Style="{StaticResource RowLabel}"/>
+                        <TextBlock Text="{infra:T settings.suit_la_musique_jouee_sur}" Style="{StaticResource RowHint}"/>
+                    </StackPanel>
+                    <Border Width="300" HorizontalAlignment="Right" VerticalAlignment="Center" Background="{StaticResource InkBrush}" CornerRadius="10" Padding="3">
+                        <UniformGrid Rows="1">
+                            <RadioButton x:Name="EffectAura" Style="{StaticResource SegmentItem}" Content="{infra:T settings.aura}" GroupName="effect" Click="Any_Click"/>
+                            <RadioButton x:Name="EffectPulse" Style="{StaticResource SegmentItem}" Content="{infra:T settings.pulsation}" GroupName="effect" Click="Any_Click"/>
+                            <RadioButton x:Name="EffectOff" Style="{StaticResource SegmentItem}" Content="{infra:T settings.aucun}" GroupName="effect" Click="Any_Click"/>
+                        </UniformGrid>
+                    </Border>
+                </Grid>
+                <Grid Style="{StaticResource Row}">
+                    <StackPanel Margin="0,0,24,0">
+                        <TextBlock Text="{infra:T settings.couleur}" Style="{StaticResource RowLabel}"/>
+                        <TextBlock x:Name="AccentName" Style="{StaticResource RowHint}"/>
+                    </StackPanel>
+                    <ItemsControl x:Name="AccentList" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Auto Shazim -->
+            <TextBlock Text="{infra:T mainwin.auto_shazim}" Style="{StaticResource SectionTitle}" Margin="0,0,0,10"/>
+            <Border Style="{StaticResource Panel}" Margin="0,0,0,22">
+                <StackPanel>
+                    <Grid Style="{StaticResource Row}">
+                        <TextBlock Text="{infra:T settings.pause_entre_deux_ecoutes}" Style="{StaticResource RowLabel}"/>
+                        <ComboBox x:Name="IntervalCombo" Width="300" HorizontalAlignment="Right" SelectionChanged="Any_Changed"/>
+                    </Grid>
+                    <Grid Style="{StaticResource Row}">
+                        <StackPanel Margin="0,0,24,0">
+                            <TextBlock Text="{infra:T settings.ignorer_un_morceau_deja_detecte}" Style="{StaticResource RowLabel}"/>
+                            <TextBlock Text="{infra:T settings.evite_d_enregistrer_dix_fois}" Style="{StaticResource RowHint}"/>
+                        </StackPanel>
+                        <ComboBox x:Name="DuplicateCombo" Width="300" HorizontalAlignment="Right" VerticalAlignment="Center" SelectionChanged="Any_Changed"/>
+                    </Grid>
+                    <ToggleButton x:Name="AutoStartSwitch" Style="{StaticResource Switch}" Margin="0,9" Click="Any_Click">
+                        <TextBlock Text="{infra:T settings.activer_auto_shazim_a_chaque}" Style="{StaticResource RowLabel}"/>
+                    </ToggleButton>
+                </StackPanel>
+            </Border>
+
+            <!-- Notifications et raccourcis -->
+            <TextBlock Text="{infra:T settings.notifications_et_raccourcis}" Style="{StaticResource SectionTitle}" Margin="0,0,0,10"/>
+            <Border Style="{StaticResource Panel}" Margin="0,0,0,22">
+                <StackPanel>
+                    <ToggleButton x:Name="NotifySwitch" Style="{StaticResource Switch}" Margin="0,9" Click="Any_Click">
+                        <StackPanel>
+                            <TextBlock Text="{infra:T settings.notifier_quand_un_morceau_est}" Style="{StaticResource RowLabel}"/>
+                            <TextBlock Text="{infra:T settings.notification_windows_quand_la_fenetre}" Style="{StaticResource RowHint}"/>
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton x:Name="AutoOnlySwitch" Style="{StaticResource Switch}" Margin="0,9" Click="Any_Click">
+                        <TextBlock Text="{infra:T settings.seulement_pour_auto_shazim}" Style="{StaticResource RowLabel}"/>
+                    </ToggleButton>
+                    <ToggleButton x:Name="HotkeysSwitch" Style="{StaticResource Switch}" Margin="0,9" Click="Any_Click">
+                        <StackPanel>
+                            <TextBlock Text="{infra:T settings.raccourcis_clavier_globaux}" Style="{StaticResource RowLabel}"/>
+                            <TextBlock Text="{infra:T settings.fonctionnent_meme_quand_une_autre}" Style="{StaticResource RowHint}"/>
+                        </StackPanel>
+                    </ToggleButton>
+                    <Grid Style="{StaticResource Row}">
+                        <StackPanel Margin="0,0,24,0">
+                            <TextBlock Text="{infra:T settings.identifier}" Style="{StaticResource RowLabel}"/>
+                            <TextBlock Text="{infra:T settings.cliquez_dans_le_champ_puis}" Style="{StaticResource RowHint}"/>
+                        </StackPanel>
+                        <TextBox x:Name="IdentifyHotkeyBox" Width="300" HorizontalAlignment="Right" VerticalAlignment="Center" IsReadOnly="True"
+                                 PreviewKeyDown="Hotkey_PreviewKeyDown" IsReadOnlyCaretVisible="False" Cursor="Hand"/>
+                    </Grid>
+                    <Grid Style="{StaticResource Row}">
+                        <TextBlock Text="{infra:T settings.activer_ou_couper_auto_shazim}" Style="{StaticResource RowLabel}"/>
+                        <TextBox x:Name="AutoHotkeyBox" Width="300" HorizontalAlignment="Right" IsReadOnly="True"
+                                 PreviewKeyDown="Hotkey_PreviewKeyDown" IsReadOnlyCaretVisible="False" Cursor="Hand"/>
+                    </Grid>
+                    <TextBlock x:Name="HotkeyError" Style="{StaticResource RowHint}" Foreground="{StaticResource DangerBrush}" Visibility="Collapsed"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Démarrage -->
+            <TextBlock Text="{infra:T settings.demarrage_et_fermeture}" Style="{StaticResource SectionTitle}" Margin="0,0,0,10"/>
+            <Border Style="{StaticResource Panel}" Margin="0,0,0,22">
+                <StackPanel>
+                    <ToggleButton x:Name="StartWithWindowsSwitch" Style="{StaticResource Switch}" Margin="0,9" Click="Any_Click">
+                        <TextBlock Text="{infra:T settings.lancer_avec_windows}" Style="{StaticResource RowLabel}"/>
+                    </ToggleButton>
+                    <ToggleButton x:Name="StartMinimizedSwitch" Style="{StaticResource Switch}" Margin="0,9" Click="Any_Click">
+                        <StackPanel>
+                            <TextBlock Text="{infra:T settings.au_lancement_avec_windows_rester}" Style="{StaticResource RowLabel}"/>
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton x:Name="CloseToTraySwitch" Style="{StaticResource Switch}" Margin="0,9" Click="Any_Click">
+                        <StackPanel>
+                            <TextBlock Text="{infra:T settings.fermer_la_fenetre_laisse_l}" Style="{StaticResource RowLabel}"/>
+                            <TextBlock Text="{infra:T settings.elle_reste_accessible_depuis_l}" Style="{StaticResource RowHint}"/>
+                        </StackPanel>
+                    </ToggleButton>
+                </StackPanel>
+            </Border>
+
+            <!-- Confidentialité et données -->
+            <TextBlock Text="{infra:T settings.confidentialite_et_donnees}" Style="{StaticResource SectionTitle}" Margin="0,0,0,10"/>
+            <Border Style="{StaticResource Panel}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource BodyText}" TextWrapping="Wrap" TextTrimming="None" LineHeight="21" Foreground="{StaticResource MistBrush}"
+                               Text="{infra:T settings.l_audio_est_garde_en}"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                        <Button Style="{StaticResource SecondaryButton}" Content="{infra:T settings.ouvrir_le_dossier_des_donnees}" Click="OpenData_Click" Margin="0,0,10,0"/>
+                        <Button Style="{StaticResource GhostButton}" Content="{infra:T settings.voir_le_journal}" Click="OpenLog_Click" Margin="0,0,10,0"/>
+                        <Button Style="{StaticResource GhostButton}" Content="{infra:T settings.effacer_l_historique_d_ecoute}" Click="ClearHistory_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- À propos -->
+            <TextBlock Text="{infra:T about.title}" Style="{StaticResource SectionTitle}" Margin="0,22,0,10"/>
+            <Border Style="{StaticResource Panel}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid Width="56" Height="56" VerticalAlignment="Top" Margin="0,2,18,0">
+                        <Ellipse Fill="{DynamicResource SignalGradientBrush}"/>
+                        <Image x:Name="AboutLogo" Width="24" Height="24" RenderOptions.BitmapScalingMode="HighQuality"/>
+                    </Grid>
+                    <StackPanel Grid.Column="1">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Shazim" Style="{StaticResource DisplayText}" FontSize="22" FontWeight="Bold"/>
+                            <TextBlock x:Name="VersionText" Style="{StaticResource MutedText}" VerticalAlignment="Bottom" Margin="10,0,0,4"/>
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource BodyText}" Margin="0,8,0,0" TextWrapping="Wrap" TextTrimming="None">
+                            <Run Text="{infra:T about.made_by}"/> <Run Text="Painful Fit" FontWeight="Bold" Foreground="{DynamicResource SignalBrush}"/>
+                        </TextBlock>
+                        <TextBlock Text="{infra:T about.with_claude}" Style="{StaticResource MutedText}" Margin="0,4,0,0" TextWrapping="Wrap" TextTrimming="None"/>
+                        <TextBlock Text="{infra:T about.credits}" Style="{StaticResource RowHint}" Margin="0,10,0,0" MaxWidth="560"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                            <Button Style="{StaticResource SecondaryButton}" Click="GitHub_Click" Margin="0,0,10,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <infra:IconView Data="{StaticResource IconGlobe}" Width="16" Height="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{infra:T about.github}"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource GhostButton}" Content="{infra:T about.licenses}" Click="Licenses_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

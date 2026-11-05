@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="src/Shazim/Core/Shazim.Core.csproj" />
+  <Project Path="src/Shazim/Data/Shazim.Data.csproj" />
+  <Project Path="src/Shazim/App/Shazim.App.csproj" />
+  <Project Path="src/Shazim/Tests/Shazim.Tests.csproj" />
+</Solution>

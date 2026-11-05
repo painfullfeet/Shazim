@@ -1,0 +1,29 @@
+name: Build and test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Unit tests
+        shell: pwsh
+        run: ./test.ps1 -Configuration Release
+      - name: Build the installer
+        shell: pwsh
+        run: ./release.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Shazim-Setup
+          path: dist/*
+          retention-days: 14

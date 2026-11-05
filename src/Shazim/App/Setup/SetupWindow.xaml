@@ -1,0 +1,137 @@
+<Window x:Class="Shazim.App.Setup.SetupWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:infra="clr-namespace:Shazim.App.Infrastructure"
+        Title="Shazim" Width="480" Height="700" WindowStyle="None" AllowsTransparency="True" ResizeMode="NoResize"
+        Background="Transparent" WindowStartupLocation="CenterScreen" FontFamily="{StaticResource BodyFont}"
+        UseLayoutRounding="True" TextOptions.TextFormattingMode="Ideal">
+
+    <Window.Resources>
+        <Style x:Key="Pulse" TargetType="Ellipse">
+            <Setter Property="Width" Value="116"/>
+            <Setter Property="Height" Value="116"/>
+            <Setter Property="StrokeThickness" Value="2"/>
+            <Setter Property="Stroke" Value="{DynamicResource SignalBrush}"/>
+            <Setter Property="Opacity" Value="0"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="IsHitTestVisible" Value="False"/>
+        </Style>
+    </Window.Resources>
+
+    <Border Margin="18" CornerRadius="20" Background="{StaticResource InkBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1"
+            MouseLeftButtonDown="Drag_MouseDown">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="28" ShadowDepth="6" Opacity="0.55" Color="Black"/>
+        </Border.Effect>
+        <Grid ClipToBounds="True">
+            <!-- Soft accent glow behind the logo -->
+            <Ellipse Width="520" Height="420" VerticalAlignment="Top" Margin="-60,-220,-60,0" Fill="{DynamicResource SignalBrush}" Opacity="0.16"
+                     IsHitTestVisible="False">
+                <Ellipse.Effect>
+                    <BlurEffect Radius="120"/>
+                </Ellipse.Effect>
+            </Ellipse>
+
+            <Button x:Name="CloseButton" Style="{StaticResource IconButton}" Tag="{StaticResource IconX}" Width="34" Height="34" FontSize="15"
+                    HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,12,12,0" Click="Close_Click"
+                    ToolTip="{infra:T setup.close}" AutomationProperties.Name="{infra:T setup.close}"/>
+
+            <Grid Margin="36,40,36,28">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- ===== Hero ===== -->
+                <StackPanel>
+                    <Grid Width="176" Height="176" HorizontalAlignment="Center">
+                        <Ellipse x:Name="Pulse1" Style="{StaticResource Pulse}"/>
+                        <Ellipse x:Name="Pulse2" Style="{StaticResource Pulse}"/>
+                        <Ellipse x:Name="Pulse3" Style="{StaticResource Pulse}"/>
+                        <Grid x:Name="Disc" Width="116" Height="116" RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <ScaleTransform x:Name="DiscScale"/>
+                            </Grid.RenderTransform>
+                            <Ellipse Fill="{DynamicResource SignalGradientBrush}">
+                                <Ellipse.Effect>
+                                    <DropShadowEffect BlurRadius="30" ShadowDepth="0" Opacity="0.6" Color="{DynamicResource SignalColor}"/>
+                                </Ellipse.Effect>
+                            </Ellipse>
+                            <Image x:Name="Logo" Width="54" Height="54" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            <infra:IconView x:Name="DoneIcon" Width="50" Height="50" Data="{StaticResource IconCheck}" Foreground="White" Visibility="Collapsed"/>
+                        </Grid>
+                    </Grid>
+
+                    <TextBlock x:Name="TitleText" Style="{StaticResource DisplayText}" FontSize="30" FontWeight="Bold" HorizontalAlignment="Center"
+                               Margin="0,6,0,0" Text="{infra:T setup.title_install}"/>
+                    <TextBlock x:Name="SubtitleText" Foreground="{StaticResource MistBrush}" FontSize="14" TextAlignment="Center" TextWrapping="Wrap"
+                               HorizontalAlignment="Center" MaxWidth="340" Margin="0,8,0,0" Text="{infra:T setup.tagline}"/>
+                    <Border HorizontalAlignment="Center" Margin="0,14,0,0" Padding="12,4" CornerRadius="12" Background="{StaticResource NightBrush}"
+                            BorderBrush="{StaticResource LineBrush}" BorderThickness="1">
+                        <TextBlock x:Name="VersionText" Foreground="{StaticResource MistBrush}" FontSize="12"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- ===== Pages ===== -->
+                <Grid Grid.Row="1" Margin="0,24,0,0">
+                    <!-- Options -->
+                    <StackPanel x:Name="OptionsPage" VerticalAlignment="Top">
+                        <Border Background="{StaticResource NightBrush}" CornerRadius="14" Padding="18,8" BorderBrush="{StaticResource LineBrush}" BorderThickness="1">
+                            <StackPanel>
+                                <ToggleButton x:Name="DesktopSwitch" Style="{StaticResource Switch}" Margin="0,8" IsChecked="True">
+                                    <TextBlock Text="{infra:T setup.desktop}" Foreground="{StaticResource PaperBrush}" FontSize="14"/>
+                                </ToggleButton>
+                                <ToggleButton x:Name="LaunchSwitch" Style="{StaticResource Switch}" Margin="0,8" IsChecked="True">
+                                    <TextBlock Text="{infra:T setup.launch_after}" Foreground="{StaticResource PaperBrush}" FontSize="14"/>
+                                </ToggleButton>
+                                <ToggleButton x:Name="RemoveDataSwitch" Style="{StaticResource Switch}" Margin="0,8" Visibility="Collapsed">
+                                    <StackPanel>
+                                        <TextBlock Text="{infra:T setup.remove_data}" Foreground="{StaticResource PaperBrush}" FontSize="14" TextWrapping="Wrap"/>
+                                        <TextBlock Text="{infra:T setup.remove_data_hint}" Foreground="{StaticResource MistBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </ToggleButton>
+                            </StackPanel>
+                        </Border>
+                        <StackPanel Orientation="Horizontal" Margin="4,14,0,0">
+                            <infra:IconView Width="14" Height="14" Data="{StaticResource IconHouse}" Foreground="{StaticResource MistBrush}" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="FolderText" Foreground="{StaticResource MistBrush}" FontSize="12" Margin="8,0,0,0" VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis" MaxWidth="330"/>
+                        </StackPanel>
+                        <TextBlock x:Name="HintText" Foreground="{StaticResource MistBrush}" FontSize="12" Margin="26,4,0,0" TextWrapping="Wrap"
+                                   Text="{infra:T setup.per_user}"/>
+                    </StackPanel>
+
+                    <!-- Progress -->
+                    <StackPanel x:Name="ProgressPage" VerticalAlignment="Center" Visibility="Collapsed">
+                        <Grid>
+                            <TextBlock x:Name="StepText" Foreground="{StaticResource PaperBrush}" FontSize="14"/>
+                            <TextBlock x:Name="PercentText" Foreground="{StaticResource MistBrush}" FontSize="14" HorizontalAlignment="Right"/>
+                        </Grid>
+                        <Border x:Name="Track" Height="8" CornerRadius="4" Background="{StaticResource DuskBrush}" Margin="0,12,0,0">
+                            <Border x:Name="Fill" HorizontalAlignment="Left" Width="0" CornerRadius="4" Background="{DynamicResource SignalGradientBrush}"/>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Done / error -->
+                    <StackPanel x:Name="DonePage" VerticalAlignment="Center" Visibility="Collapsed">
+                        <TextBlock x:Name="DoneText" Foreground="{StaticResource MistBrush}" FontSize="14" TextAlignment="Center" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- ===== Actions ===== -->
+                <StackPanel Grid.Row="2">
+                    <Button x:Name="MainButton" Style="{StaticResource PrimaryButton}" Height="50" FontSize="16" HorizontalAlignment="Stretch"
+                            Click="Main_Click" IsDefault="True"/>
+                    <TextBlock HorizontalAlignment="Center" Margin="0,16,0,0" FontSize="12" Foreground="{StaticResource MistBrush}">
+                        <Run Text="Shazim"/>
+                        <Run Text=" · "/>
+                        <Run Text="{infra:T about.made_by}"/>
+                        <Run Text="Painful Fit" Foreground="{StaticResource PaperBrush}" FontWeight="Bold"/>
+                        <Run Text=" · GPL-3.0"/>
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

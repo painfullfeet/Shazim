@@ -1,0 +1,15 @@
+<Application x:Class="Shazim.App.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:infra="clr-namespace:Shazim.App.Infrastructure"
+             ShutdownMode="OnExplicitShutdown">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/Theme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <infra:ArtworkConverter x:Key="Artwork"/>
+            <infra:VisibleWhenConverter x:Key="VisibleWhen"/>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

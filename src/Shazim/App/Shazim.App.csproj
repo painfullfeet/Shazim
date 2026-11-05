@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>Shazim.App</RootNamespace>
+    <AssemblyName>Shazim</AssemblyName>
+    <ApplicationIcon>..\..\..\assets\icon.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Version>2.0.0</Version>
+    <Product>Shazim</Product>
+    <Description>Shazim reconnaît la musique jouée sur ton PC ou autour de toi.</Description>
+    <SatelliteResourceLanguages>fr</SatelliteResourceLanguages>
+    <TieredPGO>true</TieredPGO>
+    <!-- WPF reads DPI awareness from app.manifest; this WinForms-only analyzer does not apply. -->
+    <NoWarn>$(NoWarn);WFAC010</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- WinForms is only used for the notification-area icon: keep WPF types unambiguous. -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+    <Using Include="Shazim.App.Infrastructure" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Shazim.Core.csproj" />
+    <ProjectReference Include="..\Data\Shazim.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Fonts\*.ttf" />
+    <EmbeddedResource Include="Strings\*.json" />
+  </ItemGroup>
+
+  <!-- Brand assets and licences are embedded: Shazim.exe works on its own (single-file install). -->
+  <ItemGroup>
+    <Resource Include="..\..\..\assets\icon.ico" Link="Assets\icon.ico" />
+    <Resource Include="..\..\..\assets\logo.png" Link="Assets\logo.png" />
+    <EmbeddedResource Include="..\..\..\assets\licenses\*.txt" LogicalName="Shazim.Licenses.%(Filename).txt" />
+  </ItemGroup>
+</Project>

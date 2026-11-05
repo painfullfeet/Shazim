@@ -1,0 +1,39 @@
+# Build output
+bin/
+obj/
+publish/
+dist/
+*.old-*
+TestResults/
+
+# Local .NET SDK copies (download your own, see README)
+dotnet8/
+dotnet8sdk/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Personal data: never commit a library, settings or logs
+*.db
+*.db-shm
+*.db-wal
+settings.json
+logs/
+*.log
+art/
+
+# Secrets
+.env
+*.pfx
+*.snk
+
+# Old WiX installer experiment (replaced by the built-in installer)
+installer/
+package.ps1
+
+# Claude Code local files
+.claude/
