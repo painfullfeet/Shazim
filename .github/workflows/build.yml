@@ -33,7 +33,7 @@ jobs:
       - name: Build the installer
         shell: pwsh
         run: ./release.ps1
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: Shazim-Setup
           path: dist/*
