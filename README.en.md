@@ -180,7 +180,7 @@ No. Shazim works without an account and without a key.
 <details>
 <summary><b>My antivirus or SmartScreen blocks the file</b></summary>
 
-The file is not signed with a paid certificate, which sometimes triggers a warning. The code is public; you can check the SHA-256 checksum given in the release (`Get-FileHash .\Shazim-Setup-2.0.0.exe`) or build the app yourself.
+The file is not signed with a paid certificate, which sometimes triggers a warning. The code is public; you can check the SHA-256 checksum given in the release (`Get-FileHash .\Shazim-Setup-x.y.z.exe`) or build the app yourself.
 </details>
 
 <details>

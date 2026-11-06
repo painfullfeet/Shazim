@@ -82,6 +82,9 @@ public static class Installer
         // Keep an existing "start with Windows" entry pointing at the installed copy.
         if (StartupService.IsEnabled()) StartupService.SetPath(InstalledExe);
 
+        // Without this, Explorer may not show the new shortcuts until it refreshes on its own.
+        NotifyShell(created: true, StartMenuShortcut, DesktopShortcut);
+
         await Task.Delay(250);
         progress.Report((1.0, "setup.step_done"));
     }
@@ -209,6 +212,7 @@ public static class Installer
         progress.Report((0.4, "setup.step_shortcuts_remove"));
         TryDelete(StartMenuShortcut);
         TryDelete(DesktopShortcut);
+        NotifyShell(created: false, StartMenuShortcut, DesktopShortcut);
         try { StartupService.Apply(false); } catch { }
         try { Registry.CurrentUser.DeleteSubKeyTree(UninstallKey, throwOnMissingSubKey: false); } catch { }
 
@@ -242,6 +246,28 @@ public static class Installer
             });
         }
         catch { }
+    }
+
+    [System.Runtime.InteropServices.DllImport("shell32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    private static extern void SHChangeNotify(int eventId, uint flags, string? item1, string? item2);
+
+    private const int SHCNE_CREATE = 0x2, SHCNE_DELETE = 0x4, SHCNE_UPDATEDIR = 0x1000, SHCNE_ASSOCCHANGED = 0x08000000;
+    private const uint SHCNF_PATHW = 0x5, SHCNF_IDLIST = 0;
+
+    /// <summary>Tells Explorer that shortcuts appeared or disappeared, so the desktop and Start menu refresh now.</summary>
+    private static void NotifyShell(bool created, params string[] paths)
+    {
+        try
+        {
+            foreach (var p in paths)
+            {
+                if (created && !File.Exists(p)) continue;
+                SHChangeNotify(created ? SHCNE_CREATE : SHCNE_DELETE, SHCNF_PATHW, p, null);
+                SHChangeNotify(SHCNE_UPDATEDIR, SHCNF_PATHW, Path.GetDirectoryName(p), null);
+            }
+            SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, null, null);
+        }
+        catch { /* only a refresh hint */ }
     }
 
     private static void TryDelete(string path)

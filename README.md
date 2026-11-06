@@ -185,7 +185,7 @@ Non. Shazim fonctionne sans compte et sans clé.
 <details>
 <summary><b>Mon antivirus ou SmartScreen bloque le fichier</b></summary>
 
-Le fichier n'est pas signé avec un certificat payant, ce qui déclenche parfois un avertissement. Le code est public ; tu peux vérifier l'empreinte SHA-256 indiquée dans la release (`Get-FileHash .\Shazim-Setup-2.0.0.exe`) ou compiler toi-même l'application.
+Le fichier n'est pas signé avec un certificat payant, ce qui déclenche parfois un avertissement. Le code est public ; tu peux vérifier l'empreinte SHA-256 indiquée dans la release (`Get-FileHash .\Shazim-Setup-x.y.z.exe`) ou compiler toi-même l'application.
 </details>
 
 <details>
