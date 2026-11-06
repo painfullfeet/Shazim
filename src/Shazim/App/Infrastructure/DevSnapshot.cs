@@ -60,6 +60,17 @@ public static class DevSnapshot
                 var tracks = await library.SearchAsync(null);
                 if (int.TryParse(arg, out int i) && i < tracks.Count) main?.ShowTrack(tracks[i]);
                 break;
+            case "theme": Services.ThemeService.ApplyTheme(arg); break;
+            case "accent":
+                if (arg.StartsWith('#')) Services.ThemeService.ApplyAccent(Services.ThemeService.CustomKey, arg);
+                else Services.ThemeService.ApplyAccent(arg, null);
+                break;
+            case "update":
+                // A made-up release, to look at the "update available" card.
+                main?.ShowUpdate(new Core.Updates.ReleaseInfo(new Version(9, 9, 0), "v9.9.0",
+                    "## Nouveautés\n- Mises à jour depuis l'app\n- Nouveaux thèmes et couleur perso\n- Paroles synchronisées", "",
+                    new[] { new Core.Updates.ReleaseAsset("Shazim-Setup-9.9.0.exe", "https://example.invalid/x.exe", 1) }));
+                break;
             case "scroll":
                 if (main != null && FindScroller(main) is { } sv)
                 {

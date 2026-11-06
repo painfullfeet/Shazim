@@ -18,7 +18,7 @@
         </Style>
     </Window.Resources>
 
-    <Border Margin="18" CornerRadius="20" Background="{StaticResource InkBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1"
+    <Border Margin="18" CornerRadius="20" Background="{DynamicResource InkBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1"
             MouseLeftButtonDown="Drag_MouseDown">
         <Border.Effect>
             <DropShadowEffect BlurRadius="28" ShadowDepth="6" Opacity="0.55" Color="Black"/>
@@ -65,11 +65,11 @@
 
                     <TextBlock x:Name="TitleText" Style="{StaticResource DisplayText}" FontSize="30" FontWeight="Bold" HorizontalAlignment="Center"
                                Margin="0,6,0,0" Text="{infra:T setup.title_install}"/>
-                    <TextBlock x:Name="SubtitleText" Foreground="{StaticResource MistBrush}" FontSize="14" TextAlignment="Center" TextWrapping="Wrap"
+                    <TextBlock x:Name="SubtitleText" Foreground="{DynamicResource MistBrush}" FontSize="14" TextAlignment="Center" TextWrapping="Wrap"
                                HorizontalAlignment="Center" MaxWidth="340" Margin="0,8,0,0" Text="{infra:T setup.tagline}"/>
-                    <Border HorizontalAlignment="Center" Margin="0,14,0,0" Padding="12,4" CornerRadius="12" Background="{StaticResource NightBrush}"
-                            BorderBrush="{StaticResource LineBrush}" BorderThickness="1">
-                        <TextBlock x:Name="VersionText" Foreground="{StaticResource MistBrush}" FontSize="12"/>
+                    <Border HorizontalAlignment="Center" Margin="0,14,0,0" Padding="12,4" CornerRadius="12" Background="{DynamicResource NightBrush}"
+                            BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
+                        <TextBlock x:Name="VersionText" Foreground="{DynamicResource MistBrush}" FontSize="12"/>
                     </Border>
                 </StackPanel>
 
@@ -77,45 +77,45 @@
                 <Grid Grid.Row="1" Margin="0,24,0,0">
                     <!-- Options -->
                     <StackPanel x:Name="OptionsPage" VerticalAlignment="Top">
-                        <Border Background="{StaticResource NightBrush}" CornerRadius="14" Padding="18,8" BorderBrush="{StaticResource LineBrush}" BorderThickness="1">
+                        <Border Background="{DynamicResource NightBrush}" CornerRadius="14" Padding="18,8" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
                             <StackPanel>
                                 <ToggleButton x:Name="DesktopSwitch" Style="{StaticResource Switch}" Margin="0,8" IsChecked="True">
-                                    <TextBlock Text="{infra:T setup.desktop}" Foreground="{StaticResource PaperBrush}" FontSize="14"/>
+                                    <TextBlock Text="{infra:T setup.desktop}" Foreground="{DynamicResource PaperBrush}" FontSize="14"/>
                                 </ToggleButton>
                                 <ToggleButton x:Name="LaunchSwitch" Style="{StaticResource Switch}" Margin="0,8" IsChecked="True">
-                                    <TextBlock Text="{infra:T setup.launch_after}" Foreground="{StaticResource PaperBrush}" FontSize="14"/>
+                                    <TextBlock Text="{infra:T setup.launch_after}" Foreground="{DynamicResource PaperBrush}" FontSize="14"/>
                                 </ToggleButton>
                                 <ToggleButton x:Name="RemoveDataSwitch" Style="{StaticResource Switch}" Margin="0,8" Visibility="Collapsed">
                                     <StackPanel>
-                                        <TextBlock Text="{infra:T setup.remove_data}" Foreground="{StaticResource PaperBrush}" FontSize="14" TextWrapping="Wrap"/>
-                                        <TextBlock Text="{infra:T setup.remove_data_hint}" Foreground="{StaticResource MistBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                        <TextBlock Text="{infra:T setup.remove_data}" Foreground="{DynamicResource PaperBrush}" FontSize="14" TextWrapping="Wrap"/>
+                                        <TextBlock Text="{infra:T setup.remove_data_hint}" Foreground="{DynamicResource MistBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,2,0,0"/>
                                     </StackPanel>
                                 </ToggleButton>
                             </StackPanel>
                         </Border>
                         <StackPanel Orientation="Horizontal" Margin="4,14,0,0">
-                            <infra:IconView Width="14" Height="14" Data="{StaticResource IconHouse}" Foreground="{StaticResource MistBrush}" VerticalAlignment="Center"/>
-                            <TextBlock x:Name="FolderText" Foreground="{StaticResource MistBrush}" FontSize="12" Margin="8,0,0,0" VerticalAlignment="Center"
+                            <infra:IconView Width="14" Height="14" Data="{StaticResource IconHouse}" Foreground="{DynamicResource MistBrush}" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="FolderText" Foreground="{DynamicResource MistBrush}" FontSize="12" Margin="8,0,0,0" VerticalAlignment="Center"
                                        TextTrimming="CharacterEllipsis" MaxWidth="330"/>
                         </StackPanel>
-                        <TextBlock x:Name="HintText" Foreground="{StaticResource MistBrush}" FontSize="12" Margin="26,4,0,0" TextWrapping="Wrap"
+                        <TextBlock x:Name="HintText" Foreground="{DynamicResource MistBrush}" FontSize="12" Margin="26,4,0,0" TextWrapping="Wrap"
                                    Text="{infra:T setup.per_user}"/>
                     </StackPanel>
 
                     <!-- Progress -->
                     <StackPanel x:Name="ProgressPage" VerticalAlignment="Center" Visibility="Collapsed">
                         <Grid>
-                            <TextBlock x:Name="StepText" Foreground="{StaticResource PaperBrush}" FontSize="14"/>
-                            <TextBlock x:Name="PercentText" Foreground="{StaticResource MistBrush}" FontSize="14" HorizontalAlignment="Right"/>
+                            <TextBlock x:Name="StepText" Foreground="{DynamicResource PaperBrush}" FontSize="14"/>
+                            <TextBlock x:Name="PercentText" Foreground="{DynamicResource MistBrush}" FontSize="14" HorizontalAlignment="Right"/>
                         </Grid>
-                        <Border x:Name="Track" Height="8" CornerRadius="4" Background="{StaticResource DuskBrush}" Margin="0,12,0,0">
+                        <Border x:Name="Track" Height="8" CornerRadius="4" Background="{DynamicResource DuskBrush}" Margin="0,12,0,0">
                             <Border x:Name="Fill" HorizontalAlignment="Left" Width="0" CornerRadius="4" Background="{DynamicResource SignalGradientBrush}"/>
                         </Border>
                     </StackPanel>
 
                     <!-- Done / error -->
                     <StackPanel x:Name="DonePage" VerticalAlignment="Center" Visibility="Collapsed">
-                        <TextBlock x:Name="DoneText" Foreground="{StaticResource MistBrush}" FontSize="14" TextAlignment="Center" TextWrapping="Wrap"/>
+                        <TextBlock x:Name="DoneText" Foreground="{DynamicResource MistBrush}" FontSize="14" TextAlignment="Center" TextWrapping="Wrap"/>
                     </StackPanel>
                 </Grid>
 
@@ -123,11 +123,11 @@
                 <StackPanel Grid.Row="2">
                     <Button x:Name="MainButton" Style="{StaticResource PrimaryButton}" Height="50" FontSize="16" HorizontalAlignment="Stretch"
                             Click="Main_Click" IsDefault="True"/>
-                    <TextBlock HorizontalAlignment="Center" Margin="0,16,0,0" FontSize="12" Foreground="{StaticResource MistBrush}">
+                    <TextBlock HorizontalAlignment="Center" Margin="0,16,0,0" FontSize="12" Foreground="{DynamicResource MistBrush}">
                         <Run Text="Shazim"/>
                         <Run Text=" · "/>
                         <Run Text="{infra:T about.made_by}"/>
-                        <Run Text="Painfullfeet" Foreground="{StaticResource PaperBrush}" FontWeight="Bold"/>
+                        <Run Text="Painfullfeet" Foreground="{DynamicResource PaperBrush}" FontWeight="Bold"/>
                         <Run Text=" · GPL-3.0"/>
                     </TextBlock>
                 </StackPanel>

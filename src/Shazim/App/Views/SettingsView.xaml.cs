@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -19,6 +19,7 @@ public partial class SettingsView : UserControl, IRefreshable
     private readonly SettingsService _settings;
     private readonly IAudioCaptureService _capture;
     private readonly LibraryService _library;
+    private readonly UpdateService _updates;
     private readonly List<RadioButton> _accentButtons = new();
     private bool _loading;
     private bool _testing;
@@ -28,6 +29,7 @@ public partial class SettingsView : UserControl, IRefreshable
         _settings = services.GetRequiredService<SettingsService>();
         _capture = services.GetRequiredService<IAudioCaptureService>();
         _library = services.GetRequiredService<LibraryService>();
+        _updates = services.GetRequiredService<UpdateService>();
         InitializeComponent();
 
         string Sec(int n) => Loc.F("unit.seconds", n);
@@ -63,7 +65,8 @@ public partial class SettingsView : UserControl, IRefreshable
         foreach (var accent in ThemeService.Accents)
         {
             var swatch = new Grid { Width = 34, Height = 34 };
-            var ring = new System.Windows.Shapes.Ellipse { Stroke = Brushes.White, StrokeThickness = 2, Opacity = 0 };
+            var ring = new System.Windows.Shapes.Ellipse { StrokeThickness = 2, Opacity = 0 };
+        ring.SetResourceReference(System.Windows.Shapes.Shape.StrokeProperty, "PaperBrush");
             swatch.Children.Add(ring);
             swatch.Children.Add(new System.Windows.Shapes.Ellipse { Margin = new Thickness(5), Fill = new SolidColorBrush(accent.Main) });
 
@@ -80,6 +83,9 @@ public partial class SettingsView : UserControl, IRefreshable
             _accentButtons.Add(button);
             AccentList.Items.Add(button);
         }
+        var custom = CustomSwatch();
+        _accentButtons.Add(custom);
+        AccentList.Items.Add(custom);
     }
 
     private static ControlTemplate SwatchTemplate()
@@ -92,9 +98,103 @@ public partial class SettingsView : UserControl, IRefreshable
 
     private void SetAccent(string key)
     {
-        ThemeService.Apply(key);
-        _settings.GetSettings().General.Accent = key;
-        AccentName.Text = Loc.T("accent." + ThemeService.Find(key).Key);
+        var g = _settings.GetSettings().General;
+        g.Accent = key;
+        ThemeService.ApplyAccent(key, g.CustomAccent);
+        UpdateAccentUi();
+        ShowSaved(Loc.T("settings.saved"));
+        _settings.Save();
+    }
+
+    /// <summary>The last swatch: a rainbow ring that opens the hue slider and the hex field.</summary>
+    private RadioButton CustomSwatch()
+    {
+        var swatch = new Grid { Width = 34, Height = 34 };
+        var ring = new System.Windows.Shapes.Ellipse { StrokeThickness = 2, Opacity = 0 };
+        ring.SetResourceReference(System.Windows.Shapes.Shape.StrokeProperty, "PaperBrush");
+        var rainbow = new System.Windows.Shapes.Ellipse
+        {
+            Margin = new Thickness(5), StrokeThickness = 4,
+            Stroke = new LinearGradientBrush(new GradientStopCollection
+            {
+                new(Color.FromRgb(0xF2, 0x33, 0x3D), 0), new(Color.FromRgb(0xF2, 0xE8, 0x33), 0.25),
+                new(Color.FromRgb(0x33, 0xE5, 0xF2), 0.5), new(Color.FromRgb(0xE5, 0x33, 0xF2), 0.75), new(Color.FromRgb(0xF2, 0x33, 0x3D), 1)
+            }, 0)
+        };
+        _customDot = new System.Windows.Shapes.Ellipse { Margin = new Thickness(11) };
+        swatch.Children.Add(ring);
+        swatch.Children.Add(rainbow);
+        swatch.Children.Add(_customDot);
+
+        var button = new RadioButton
+        {
+            GroupName = "accent", Tag = ThemeService.CustomKey, ToolTip = Loc.T("theme.custom"), Margin = new Thickness(4, 0, 0, 0),
+            Cursor = Cursors.Hand, Content = swatch, FocusVisualStyle = (Style)FindResource("FocusRing"), Template = SwatchTemplate()
+        };
+        AutomationPropertiesHelper.SetName(button, Loc.T("settings.couleur") + " " + Loc.T("theme.custom"));
+        button.Checked += (_, _) => ring.Opacity = 1;
+        button.Unchecked += (_, _) => ring.Opacity = 0;
+        button.Click += (_, _) => SetAccent(ThemeService.CustomKey);
+        return button;
+    }
+
+    private System.Windows.Shapes.Ellipse? _customDot;
+
+    private void UpdateAccentUi()
+    {
+        var g = _settings.GetSettings().General;
+        bool custom = g.Accent == ThemeService.CustomKey;
+        var color = ThemeService.ParseHex(g.CustomAccent) ?? Colors.HotPink;
+        foreach (var b in _accentButtons) b.IsChecked = (string)b.Tag == (custom ? ThemeService.CustomKey : ThemeService.Find(g.Accent).Key);
+        AccentName.Text = custom ? Loc.T("theme.custom") + " · " + ThemeService.ToHex(color) : Loc.T("accent." + ThemeService.Find(g.Accent).Key);
+        CustomAccentRow.Visibility = custom ? Visibility.Visible : Visibility.Collapsed;
+        if (_customDot != null) _customDot.Fill = new SolidColorBrush(color);
+        _syncingHue = true;
+        HueSlider.Value = ThemeService.HueOf(color);
+        _syncingHue = false;
+        if (!HexBox.IsKeyboardFocused) HexBox.Text = ThemeService.ToHex(color);
+    }
+
+    private bool _syncingHue;
+
+    private void Hue_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_syncingHue || _loading || !IsLoaded) return;
+        SetCustomColor(ThemeService.FromHue(e.NewValue));
+    }
+
+    private void Hex_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter) Hex_Commit(sender, e);
+    }
+
+    private void Hex_Commit(object sender, RoutedEventArgs e)
+    {
+        if (ThemeService.ParseHex(HexBox.Text) is { } c) SetCustomColor(c);
+        else HexBox.Text = _settings.GetSettings().General.CustomAccent;
+    }
+
+    private void SetCustomColor(Color c)
+    {
+        var g = _settings.GetSettings().General;
+        g.CustomAccent = ThemeService.ToHex(c);
+        g.Accent = ThemeService.CustomKey;
+        ThemeService.ApplyAccent(g.Accent, g.CustomAccent);
+        UpdateAccentUi();
+        HexBox.Text = g.CustomAccent;
+        ShowSaved(Loc.T("settings.saved"));
+        _settings.Save();
+    }
+
+    private void Theme_Click(object sender, RoutedEventArgs e)
+    {
+        var mode = ThemeMidnight.IsChecked == true ? ThemeMode.Midnight
+            : ThemeLight.IsChecked == true ? ThemeMode.Light
+            : ThemeSystem.IsChecked == true ? ThemeMode.System : ThemeMode.Night;
+        var g = _settings.GetSettings().General;
+        if (g.Theme == mode) return;
+        g.Theme = mode;
+        ThemeService.ApplyTheme(mode);
         ShowSaved(Loc.T("settings.saved"));
         _settings.Save();
     }
@@ -123,9 +223,11 @@ public partial class SettingsView : UserControl, IRefreshable
             SelectValue(IntervalCombo, s.AutoShazam.IntervalMs);
             SelectValue(DuplicateCombo, s.AutoShazam.DuplicateWindowMinutes);
 
-            var accent = ThemeService.Find(s.General.Accent);
-            foreach (var b in _accentButtons) b.IsChecked = (string)b.Tag == accent.Key;
-            AccentName.Text = Loc.T("accent." + accent.Key);
+            UpdateAccentUi();
+            ThemeNight.IsChecked = s.General.Theme == ThemeMode.Night;
+            ThemeMidnight.IsChecked = s.General.Theme == ThemeMode.Midnight;
+            ThemeLight.IsChecked = s.General.Theme == ThemeMode.Light;
+            ThemeSystem.IsChecked = s.General.Theme == ThemeMode.System;
 
             EffectAura.IsChecked = s.General.ButtonEffect == ButtonEffect.Aura;
             EffectPulse.IsChecked = s.General.ButtonEffect == ButtonEffect.Pulse;
@@ -143,6 +245,7 @@ public partial class SettingsView : UserControl, IRefreshable
             StartMinimizedSwitch.IsChecked = s.General.StartMinimized;
             StartMinimizedSwitch.IsEnabled = s.General.StartWithWindows;
             CloseToTraySwitch.IsChecked = s.General.CloseToTray;
+            AutoUpdateSwitch.IsChecked = s.Updates.AutoCheck;
         }
         finally
         {
@@ -203,6 +306,7 @@ public partial class SettingsView : UserControl, IRefreshable
         StartMinimizedSwitch.IsEnabled = startWithWindows;
         s.General.StartMinimized = StartMinimizedSwitch.IsChecked == true;
         s.General.CloseToTray = CloseToTraySwitch.IsChecked == true;
+        s.Updates.AutoCheck = AutoUpdateSwitch.IsChecked == true;
 
         ShowSaved(Loc.T("settings.saved"));
         _settings.Save();
@@ -327,6 +431,28 @@ public partial class SettingsView : UserControl, IRefreshable
     }
 
     private void GitHub_Click(object sender, RoutedEventArgs e) => Infrastructure.Shell.Open(RepositoryUrl);
+
+    private async void CheckUpdate_Click(object sender, RoutedEventArgs e)
+    {
+        CheckUpdateButton.IsEnabled = false;
+        UpdateStatusText.Text = Loc.T("update.checking");
+        try
+        {
+            var result = await _updates.CheckAsync(manual: true);
+            UpdateStatusText.Text = result.Status switch
+            {
+                UpdateCheckStatus.Available => Loc.F("update.available", result.Release!.DisplayVersion),
+                UpdateCheckStatus.Failed => result.Message,
+                _ => Loc.F("update.up_to_date", UpdateService.CurrentVersion.ToString(3))
+            };
+            if (result is { Status: UpdateCheckStatus.Available, Release: { } release })
+                (Window.GetWindow(this) as MainWindow)?.ShowUpdate(release);
+        }
+        finally
+        {
+            CheckUpdateButton.IsEnabled = true;
+        }
+    }
 
     private void Licenses_Click(object sender, RoutedEventArgs e) => Infrastructure.Shell.Open(RepositoryUrl + "#licences");
 

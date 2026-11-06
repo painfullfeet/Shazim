@@ -4,7 +4,7 @@
         xmlns:infra="clr-namespace:Shazim.App.Infrastructure"
         Title="Shazim" Width="1120" Height="740" MinWidth="820" MinHeight="600"
         WindowStartupLocation="CenterScreen"
-        Background="{StaticResource InkBrush}"
+        Background="{DynamicResource InkBrush}"
         FontFamily="{StaticResource BodyFont}"
         UseLayoutRounding="True" TextOptions.TextFormattingMode="Ideal" TextOptions.TextRenderingMode="ClearType">
 
@@ -20,7 +20,7 @@
             </Grid.ColumnDefinitions>
 
             <!-- ===== Barre latérale (rétractable) ===== -->
-            <Border x:Name="Rail" Width="240" Background="{StaticResource NightBrush}" ClipToBounds="True">
+            <Border x:Name="Rail" Width="240" Background="{DynamicResource NightBrush}" ClipToBounds="True">
                 <Grid Margin="14,0,14,16">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -58,7 +58,7 @@
                     </StackPanel>
 
                     <!-- Auto Shazim : carte complète -->
-                    <Border x:Name="AutoCard" Grid.Row="3" Background="{StaticResource InkBrush}" CornerRadius="16" Padding="14,12">
+                    <Border x:Name="AutoCard" Grid.Row="3" Background="{DynamicResource InkBrush}" CornerRadius="16" Padding="14,12">
                         <StackPanel>
                             <ToggleButton x:Name="AutoToggle" Style="{StaticResource Switch}" Click="AutoToggle_Click"
                                           ToolTip="{infra:T mainwin.identifie_automatiquement_la_musique_en}">
@@ -69,7 +69,7 @@
                                     <Ellipse x:Name="AutoPulse" Fill="{DynamicResource SignalBrush}" Opacity="0" RenderTransformOrigin="0.5,0.5">
                                         <Ellipse.RenderTransform><ScaleTransform/></Ellipse.RenderTransform>
                                     </Ellipse>
-                                    <Ellipse x:Name="AutoDot" Fill="{StaticResource MistBrush}"/>
+                                    <Ellipse x:Name="AutoDot" Fill="{DynamicResource MistBrush}"/>
                                 </Grid>
                                 <TextBlock x:Name="AutoStatusText" Text="{infra:T mainwin.desactive}" Style="{StaticResource MutedText}" FontSize="12"
                                            TextWrapping="Wrap" TextTrimming="None" MaxWidth="160"/>
@@ -83,8 +83,8 @@
                         <ToggleButton.Template>
                             <ControlTemplate TargetType="ToggleButton">
                                 <Grid>
-                                    <Ellipse x:Name="Disc" Fill="{StaticResource InkBrush}" Stroke="{StaticResource LineBrush}" StrokeThickness="1"/>
-                                    <infra:IconView x:Name="Glyph" Data="{StaticResource IconWaveform}" Width="20" Height="20" Foreground="{StaticResource MistBrush}"/>
+                                    <Ellipse x:Name="Disc" Fill="{DynamicResource InkBrush}" Stroke="{DynamicResource LineBrush}" StrokeThickness="1"/>
+                                    <infra:IconView x:Name="Glyph" Data="{StaticResource IconWaveform}" Width="20" Height="20" Foreground="{DynamicResource MistBrush}"/>
                                 </Grid>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsChecked" Value="True">
@@ -130,7 +130,7 @@
             <!-- ===== Fiche morceau (pop-up) ===== -->
             <Grid x:Name="DialogLayer" Grid.ColumnSpan="2" Visibility="Collapsed">
                 <Rectangle Fill="#B30A0816" MouseLeftButtonDown="DialogBackdrop_Click"/>
-                <Border x:Name="DialogCard" Background="{StaticResource InkBrush}" CornerRadius="24" BorderBrush="{StaticResource LineBrush}"
+                <Border x:Name="DialogCard" Background="{DynamicResource InkBrush}" CornerRadius="24" BorderBrush="{DynamicResource LineBrush}"
                         BorderThickness="1" Width="760" Margin="40,56,40,40" ClipToBounds="True" RenderTransformOrigin="0.5,0.5" Focusable="True">
                     <Border.RenderTransform>
                         <TransformGroup>
@@ -145,6 +145,12 @@
                                 AutomationProperties.Name="{infra:T mainwin.fermer_la_fiche}"/>
                     </Grid>
                 </Border>
+            </Grid>
+
+            <!-- ===== Mise à jour disponible ===== -->
+            <Grid x:Name="UpdateLayer" Grid.ColumnSpan="2" Visibility="Collapsed">
+                <Rectangle Fill="#990A0816"/>
+                <ContentControl x:Name="UpdateHost" Focusable="False"/>
             </Grid>
         </Grid>
     </Border>

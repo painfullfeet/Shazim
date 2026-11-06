@@ -30,7 +30,7 @@
         <StackPanel Margin="40,4,40,32" MaxWidth="760" HorizontalAlignment="Left">
             <DockPanel Margin="0,0,0,18">
                 <TextBlock x:Name="SavedText" DockPanel.Dock="Right" Style="{StaticResource MutedText}" VerticalAlignment="Bottom"
-                           Foreground="{StaticResource WaveBrush}" Margin="0,0,0,5" Opacity="0"/>
+                           Foreground="{DynamicResource WaveBrush}" Margin="0,0,0,5" Opacity="0"/>
                 <TextBlock Text="{infra:T mainwin.reglages}" Style="{StaticResource PageTitle}"/>
             </DockPanel>
 
@@ -43,7 +43,7 @@
                             <TextBlock Text="{infra:T mainwin.ecouter}" Style="{StaticResource RowLabel}"/>
                             <TextBlock Text="{infra:T settings.le_son_du_pc_capte}" Style="{StaticResource RowHint}" MaxWidth="330" HorizontalAlignment="Left"/>
                         </StackPanel>
-                        <Border Width="300" HorizontalAlignment="Right" VerticalAlignment="Center" Background="{StaticResource InkBrush}" CornerRadius="8" Padding="3">
+                        <Border Width="300" HorizontalAlignment="Right" VerticalAlignment="Center" Background="{DynamicResource InkBrush}" CornerRadius="8" Padding="3">
                             <UniformGrid Rows="1">
                                 <RadioButton x:Name="SourcePc" Style="{StaticResource SegmentItem}" Content="{infra:T home.son_du_pc}" GroupName="source" Click="Source_Click"/>
                                 <RadioButton x:Name="SourceMic" Style="{StaticResource SegmentItem}" Content="{infra:T settings.micro}" GroupName="source" Click="Source_Click"/>
@@ -65,7 +65,7 @@
                             <TextBlock x:Name="TestHint" Text="{infra:T settings.verifie_que_la_source_choisie}" Style="{StaticResource RowHint}" MaxWidth="330" HorizontalAlignment="Left"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <Border Width="180" Height="8" CornerRadius="4" Background="{StaticResource DuskBrush}" VerticalAlignment="Center" Margin="0,0,12,0">
+                            <Border Width="180" Height="8" CornerRadius="4" Background="{DynamicResource DuskBrush}" VerticalAlignment="Center" Margin="0,0,12,0">
                                 <Border x:Name="LevelBar" HorizontalAlignment="Left" Width="0" CornerRadius="4" Background="{DynamicResource SignalBrush}"/>
                             </Border>
                             <Button x:Name="TestButton" Style="{StaticResource SecondaryButton}" Content="{infra:T settings.tester}" Width="108" Click="Test_Click"/>
@@ -95,10 +95,26 @@
                 </Grid>
                 <Grid Style="{StaticResource Row}">
                     <StackPanel Margin="0,0,24,0">
+                        <TextBlock Text="{infra:T theme.title}" Style="{StaticResource RowLabel}"/>
+                        <TextBlock Text="{infra:T theme.hint}" Style="{StaticResource RowHint}"/>
+                    </StackPanel>
+                    <Border Width="340" HorizontalAlignment="Right" VerticalAlignment="Center" Background="{DynamicResource InkBrush}" CornerRadius="10" Padding="3">
+                        <UniformGrid Rows="1">
+                            <RadioButton x:Name="ThemeNight" Style="{StaticResource SegmentItem}" Content="{infra:T theme.nuit}" GroupName="theme" Click="Theme_Click"/>
+                            <RadioButton x:Name="ThemeMidnight" Style="{StaticResource SegmentItem}" Content="{infra:T theme.minuit}" GroupName="theme" Click="Theme_Click"
+                                         ToolTip="{infra:T theme.minuit_tip}"/>
+                            <RadioButton x:Name="ThemeLight" Style="{StaticResource SegmentItem}" Content="{infra:T theme.clair}" GroupName="theme" Click="Theme_Click"/>
+                            <RadioButton x:Name="ThemeSystem" Style="{StaticResource SegmentItem}" Content="{infra:T theme.systeme}" GroupName="theme" Click="Theme_Click"
+                                         ToolTip="{infra:T theme.systeme_tip}"/>
+                        </UniformGrid>
+                    </Border>
+                </Grid>
+                <Grid Style="{StaticResource Row}">
+                    <StackPanel Margin="0,0,24,0">
                         <TextBlock Text="{infra:T settings.effet_du_bouton_ecouter}" Style="{StaticResource RowLabel}"/>
                         <TextBlock Text="{infra:T settings.suit_la_musique_jouee_sur}" Style="{StaticResource RowHint}"/>
                     </StackPanel>
-                    <Border Width="300" HorizontalAlignment="Right" VerticalAlignment="Center" Background="{StaticResource InkBrush}" CornerRadius="10" Padding="3">
+                    <Border Width="300" HorizontalAlignment="Right" VerticalAlignment="Center" Background="{DynamicResource InkBrush}" CornerRadius="10" Padding="3">
                         <UniformGrid Rows="1">
                             <RadioButton x:Name="EffectAura" Style="{StaticResource SegmentItem}" Content="{infra:T settings.aura}" GroupName="effect" Click="Any_Click"/>
                             <RadioButton x:Name="EffectPulse" Style="{StaticResource SegmentItem}" Content="{infra:T settings.pulsation}" GroupName="effect" Click="Any_Click"/>
@@ -116,6 +132,31 @@
                             <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
+                </Grid>
+                <!-- Couleur personnalisée : teinte + code hexadécimal -->
+                <Grid x:Name="CustomAccentRow" Style="{StaticResource Row}" Visibility="Collapsed">
+                    <TextBlock Text="{infra:T theme.custom_label}" Style="{StaticResource RowLabel}"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Grid Width="190" Height="22" VerticalAlignment="Center" Margin="0,0,12,0">
+                            <Border CornerRadius="5" Height="10" VerticalAlignment="Center">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#F2333D" Offset="0"/>
+                                        <GradientStop Color="#F2E833" Offset="0.167"/>
+                                        <GradientStop Color="#33F25C" Offset="0.333"/>
+                                        <GradientStop Color="#33E5F2" Offset="0.5"/>
+                                        <GradientStop Color="#3D33F2" Offset="0.667"/>
+                                        <GradientStop Color="#E533F2" Offset="0.833"/>
+                                        <GradientStop Color="#F2333D" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                            </Border>
+                            <Slider x:Name="HueSlider" Minimum="0" Maximum="359" SmallChange="1" LargeChange="15" VerticalAlignment="Center"
+                                    ValueChanged="Hue_Changed" AutomationProperties.Name="{infra:T theme.hue}" Background="Transparent"/>
+                        </Grid>
+                        <TextBox x:Name="HexBox" Width="98" VerticalAlignment="Center" MaxLength="7" LostFocus="Hex_Commit" KeyDown="Hex_KeyDown"
+                                 AutomationProperties.Name="{infra:T theme.hex}" ToolTip="{infra:T theme.hex}"/>
+                    </StackPanel>
                 </Grid>
                 </StackPanel>
             </Border>
@@ -173,7 +214,7 @@
                         <TextBox x:Name="AutoHotkeyBox" Width="300" HorizontalAlignment="Right" IsReadOnly="True"
                                  PreviewKeyDown="Hotkey_PreviewKeyDown" IsReadOnlyCaretVisible="False" Cursor="Hand"/>
                     </Grid>
-                    <TextBlock x:Name="HotkeyError" Style="{StaticResource RowHint}" Foreground="{StaticResource DangerBrush}" Visibility="Collapsed"/>
+                    <TextBlock x:Name="HotkeyError" Style="{StaticResource RowHint}" Foreground="{DynamicResource DangerBrush}" Visibility="Collapsed"/>
                 </StackPanel>
             </Border>
 
@@ -202,7 +243,7 @@
             <TextBlock Text="{infra:T settings.confidentialite_et_donnees}" Style="{StaticResource SectionTitle}" Margin="0,0,0,10"/>
             <Border Style="{StaticResource Panel}">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource BodyText}" TextWrapping="Wrap" TextTrimming="None" LineHeight="21" Foreground="{StaticResource MistBrush}"
+                    <TextBlock Style="{StaticResource BodyText}" TextWrapping="Wrap" TextTrimming="None" LineHeight="21" Foreground="{DynamicResource MistBrush}"
                                Text="{infra:T settings.l_audio_est_garde_en}"/>
                     <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
                         <Button Style="{StaticResource SecondaryButton}" Content="{infra:T settings.ouvrir_le_dossier_des_donnees}" Click="OpenData_Click" Margin="0,0,10,0"/>
@@ -243,6 +284,26 @@
                             </Button>
                             <Button Style="{StaticResource GhostButton}" Content="{infra:T about.licenses}" Click="Licenses_Click"/>
                         </StackPanel>
+
+                        <!-- Mises à jour -->
+                        <Border Height="1" Background="{DynamicResource LineBrush}" Margin="0,18,0,8"/>
+                        <ToggleButton x:Name="AutoUpdateSwitch" Style="{StaticResource Switch}" Margin="0,8" Click="Any_Click">
+                            <StackPanel>
+                                <TextBlock Text="{infra:T update.auto_check}" Style="{StaticResource RowLabel}"/>
+                                <TextBlock Text="{infra:T update.auto_check_hint}" Style="{StaticResource RowHint}"/>
+                            </StackPanel>
+                        </ToggleButton>
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <Button x:Name="CheckUpdateButton" Style="{StaticResource SecondaryButton}" Click="CheckUpdate_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <infra:IconView Data="{StaticResource IconDownload}" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{infra:T update.check_now}"/>
+                                </StackPanel>
+                            </Button>
+                            <TextBlock x:Name="UpdateStatusText" Style="{StaticResource MutedText}" FontSize="12" VerticalAlignment="Center" Margin="14,0,0,0"
+                                       TextWrapping="Wrap" TextTrimming="None" MaxWidth="330"/>
+                        </StackPanel>
+                        <TextBlock Text="{infra:T about.lyrics_credit}" Style="{StaticResource RowHint}" Margin="0,14,0,0" MaxWidth="560"/>
                     </StackPanel>
                 </Grid>
             </Border>

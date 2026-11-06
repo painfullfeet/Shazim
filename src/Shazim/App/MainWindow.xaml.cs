@@ -266,6 +266,36 @@ public partial class MainWindow : Window
     private void DialogBackdrop_Click(object sender, MouseButtonEventArgs e) => CloseTrack();
     private void DialogClose_Click(object sender, RoutedEventArgs e) => CloseTrack();
 
+    // ===== Mise à jour =====
+
+    private Core.Updates.ReleaseInfo? _pendingUpdate;
+
+    /// <summary>Shows the "update available" card now, or the next time the window is shown.</summary>
+    public void ShowUpdate(Core.Updates.ReleaseInfo release)
+    {
+        if (!IsVisible)
+        {
+            _pendingUpdate = release;
+            IsVisibleChanged -= ShowPendingUpdate;
+            IsVisibleChanged += ShowPendingUpdate;
+            return;
+        }
+        var dialog = new UpdateDialog(_services.GetRequiredService<UpdateService>(), release);
+        dialog.Dismissed += (_, _) => { UpdateLayer.Visibility = Visibility.Collapsed; UpdateHost.Content = null; };
+        UpdateHost.Content = dialog;
+        UpdateLayer.Visibility = Visibility.Visible;
+        dialog.PlayEntrance();
+    }
+
+    private void ShowPendingUpdate(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (!IsVisible || _pendingUpdate == null) return;
+        IsVisibleChanged -= ShowPendingUpdate;
+        var release = _pendingUpdate;
+        _pendingUpdate = null;
+        Dispatcher.BeginInvoke(() => ShowUpdate(release));
+    }
+
     // ===== Auto Shazim =====
 
     private void UpdateAutoStatus()

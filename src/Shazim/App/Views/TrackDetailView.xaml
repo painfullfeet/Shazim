@@ -23,8 +23,8 @@
         <Rectangle VerticalAlignment="Top" Height="420">
             <Rectangle.Fill>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                    <GradientStop Color="#5517142B" Offset="0"/>
-                    <GradientStop Color="{StaticResource InkColor}" Offset="1"/>
+                    <GradientStop Color="{DynamicResource InkTintColor}" Offset="0"/>
+                    <GradientStop Color="{DynamicResource InkColor}" Offset="1"/>
                 </LinearGradientBrush>
             </Rectangle.Fill>
         </Rectangle>
@@ -38,7 +38,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Grid x:Name="ArtBox" Width="200" Height="200" VerticalAlignment="Top">
-                        <Border CornerRadius="12" Background="{StaticResource ArtPlaceholderBrush}">
+                        <Border CornerRadius="12" Background="{DynamicResource ArtPlaceholderBrush}">
                             <TextBlock x:Name="ArtInitial" Style="{StaticResource DisplayText}" FontSize="72" Opacity="0.85"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
@@ -51,7 +51,7 @@
                         <TextBlock x:Name="Badge" Style="{StaticResource MutedText}" FontSize="12" Foreground="{DynamicResource SignalBrush}"/>
                         <TextBlock x:Name="TitleText" Style="{StaticResource DisplayText}" FontSize="34" TextWrapping="Wrap"
                                    TextTrimming="CharacterEllipsis" MaxHeight="88" Margin="0,4,0,0"/>
-                        <TextBlock x:Name="ArtistText" Style="{StaticResource BodyText}" FontSize="19" Foreground="{StaticResource MistBrush}" Margin="0,4,0,0"/>
+                        <TextBlock x:Name="ArtistText" Style="{StaticResource BodyText}" FontSize="19" Foreground="{DynamicResource MistBrush}" Margin="0,4,0,0"/>
                         <TextBlock x:Name="MetaText" Style="{StaticResource MutedText}" Margin="0,8,0,0"/>
 
                         <WrapPanel Margin="0,18,0,0">
@@ -68,7 +68,7 @@
                             <Button x:Name="DeleteButton" Style="{StaticResource IconButton}" Width="44" Height="44" Tag="{StaticResource IconTrash}" ToolTip="{infra:T trackdetail.supprimer_de_la_bibliotheque}" Margin="0,0,4,8" Click="Delete_Click"/>
                         </WrapPanel>
                         <!-- Progression de l'extrait -->
-                        <Border x:Name="PreviewTrack" Height="3" CornerRadius="2" Background="{StaticResource LineBrush}" MaxWidth="320" HorizontalAlignment="Left"
+                        <Border x:Name="PreviewTrack" Height="3" CornerRadius="2" Background="{DynamicResource LineBrush}" MaxWidth="320" HorizontalAlignment="Left"
                                 Width="320" Visibility="Hidden">
                             <Border x:Name="PreviewBar" HorizontalAlignment="Left" Width="0" CornerRadius="2" Background="{DynamicResource SignalBrush}"/>
                         </Border>

@@ -42,7 +42,7 @@ public partial class App : Application
         if (setupMode != Setup.SetupMode.None)
         {
             Infrastructure.Loc.Instance.SetLanguage("");
-            ThemeService.Apply(null);
+            ThemeService.ApplyDefault();
             ShutdownMode = ShutdownMode.OnMainWindowClose;
             DispatcherUnhandledException += (_, args) =>
             {
@@ -106,7 +106,7 @@ public partial class App : Application
         var settings = Services.GetRequiredService<SettingsService>();
         Core.CoreText.Resolver = key => Infrastructure.Loc.Instance.TryGet(key);
         Infrastructure.Loc.Instance.SetLanguage(settings.GetSettings().General.Language);
-        ThemeService.Apply(settings.GetSettings().General.Accent);
+        ThemeService.Apply(settings.GetSettings().General);
         var auto = Services.GetRequiredService<AutoShazamService>();
         var controller = Services.GetRequiredService<IdentifyController>();
 
@@ -115,6 +115,19 @@ public partial class App : Application
         _logger.LogDebug("Main window created");
 
         CreateTray();
+        // The tray menu is built from code: rebuild it in the new colours.
+        bool trayQueued = false;
+        ThemeService.Changed += (_, _) =>
+        {
+            if (trayQueued) return;
+            trayQueued = true;
+            Dispatcher.BeginInvoke(async () =>
+            {
+                await Task.Delay(600); // the colour slider sends many changes
+                trayQueued = false;
+                if (!_exiting) CreateTray();
+            });
+        };
 
         auto.StatusChanged += (_, _) => Dispatcher.BeginInvoke(() => _tray?.SetAutoShazam(auto.IsEnabled, auto.StatusText));
         auto.TrackDetected += (_, outcome) => Dispatcher.BeginInvoke(() =>
@@ -140,6 +153,25 @@ public partial class App : Application
             ShowMainWindow();
 
         _logger.LogInformation("Shazim started");
+        _ = CheckUpdatesLaterAsync();
+    }
+
+    /// <summary>Once a day, a little after start-up (never slows the first window down).</summary>
+    private async Task CheckUpdatesLaterAsync()
+    {
+        try
+        {
+            var updates = Services.GetRequiredService<UpdateService>();
+            if (!updates.AutoCheckDue() || Environment.GetEnvironmentVariable("SHAZIM_NO_UPDATE_CHECK") == "1") return;
+            await Task.Delay(TimeSpan.FromSeconds(8));
+            var result = await updates.CheckAsync(manual: false);
+            if (result is { Status: UpdateCheckStatus.Available, Release: { } release } && !_exiting)
+                _main?.ShowUpdate(release);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning("Update check skipped: {Message}", ex.Message);
+        }
     }
 
     private void CreateTray()
@@ -190,6 +222,7 @@ public partial class App : Application
                 services.AddSingleton<IdentifyController>();
                 services.AddSingleton<PreviewPlayer>();
                 services.AddSingleton<MusicVisualizer>();
+                services.AddSingleton<UpdateService>();
                 services.AddSingleton<AutoShazamService>();
                 services.AddHostedService(sp => sp.GetRequiredService<AutoShazamService>());
             })

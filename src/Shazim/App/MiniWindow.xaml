@@ -5,7 +5,7 @@
         Title="Shazim – mini" Width="380" Height="96" ResizeMode="NoResize" Topmost="True"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent" ShowInTaskbar="False"
         FontFamily="{StaticResource BodyFont}" UseLayoutRounding="True">
-    <Border Background="{StaticResource NightBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="24"
+    <Border Background="{DynamicResource NightBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" CornerRadius="24"
             MouseLeftButtonDown="Drag" Padding="12">
         <Grid>
             <Grid.ColumnDefinitions>
@@ -19,7 +19,7 @@
                 <Button.Template>
                     <ControlTemplate TargetType="Button">
                         <Grid>
-                            <Ellipse x:Name="Halo" Stroke="{StaticResource WaveBrush}" StrokeThickness="2" Opacity="0"/>
+                            <Ellipse x:Name="Halo" Stroke="{DynamicResource WaveBrush}" StrokeThickness="2" Opacity="0"/>
                             <Ellipse Margin="6" Fill="{DynamicResource SignalGradientBrush}"/>
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Grid>

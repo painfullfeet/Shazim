@@ -96,9 +96,9 @@
                                Text="{infra:T home.reconnait_la_musique_jouee_sur}"/>
                     <Button x:Name="SourceButton" Style="{StaticResource GhostButton}" HorizontalAlignment="Center" Margin="0,12,0,0"
                             Click="Source_Click" ToolTip="{infra:T home.choisir_ce_qu_il_faut}">
-                        <Border CornerRadius="14" Background="#1AFFFFFF" Padding="12,6">
+                        <Border CornerRadius="14" Background="{DynamicResource HoverBrush}" Padding="12,6">
                             <StackPanel Orientation="Horizontal">
-                                <infra:IconView x:Name="SourceIcon" Data="{StaticResource IconSpeakerHigh}" Width="15" Height="15" Foreground="{StaticResource MistBrush}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <infra:IconView x:Name="SourceIcon" Data="{StaticResource IconSpeakerHigh}" Width="15" Height="15" Foreground="{DynamicResource MistBrush}" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                 <TextBlock x:Name="SourceText" Text="{infra:T home.son_du_pc}" FontSize="12" MaxWidth="320" TextTrimming="CharacterEllipsis"/>
                             </StackPanel>
                         </Border>
@@ -131,7 +131,7 @@
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
                                         <Grid Width="44" Height="44">
-                                            <Border CornerRadius="6" Background="{StaticResource ArtPlaceholderBrush}">
+                                            <Border CornerRadius="6" Background="{DynamicResource ArtPlaceholderBrush}">
                                                 <TextBlock Text="{Binding Initial}" Style="{StaticResource SectionTitle}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
                                             <Border CornerRadius="6">
@@ -159,7 +159,7 @@
             <Button Style="{StaticResource GhostButton}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="26,0,0,0"
                     Click="Back_Click" ToolTip="{infra:T home.revenir_au_bouton_d_ecoute}">
                 <StackPanel Orientation="Horizontal">
-                    <infra:IconView Data="{StaticResource IconArrowLeft}" Width="15" Height="15" Foreground="{StaticResource MistBrush}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <infra:IconView Data="{StaticResource IconArrowLeft}" Width="15" Height="15" Foreground="{DynamicResource MistBrush}" Margin="0,0,8,0" VerticalAlignment="Center"/>
                     <TextBlock Text="{infra:T home.shazimer_a_nouveau}"/>
                 </StackPanel>
             </Button>
