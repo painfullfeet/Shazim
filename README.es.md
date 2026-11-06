@@ -47,12 +47,29 @@ También puede usar el micrófono para reconocer la música de la habitación, o
 | 📚 **Biblioteca** | Todas tus canciones, búsqueda, favoritos, orden, avances en la lista, exportación CSV o JSON. |
 | 🔁 **Auto Shazim** | Escucha sin parar en segundo plano y guarda cada canción nueva. |
 | 🌊 **Botón vivo** | El botón reacciona a la música: aura tipo visualizador o pulso del logo al ritmo. |
-| 🎨 **Personalizable** | 5 colores, barra lateral plegable, pantalla completa, minirreproductor. |
+| 🎨 **Temas y colores** | 4 temas (*Noche*, *Medianoche* negro puro para OLED, *Claro*, *Seguir a Windows*), 5 colores o el tuyo propio (tono + código hexadecimal). |
+| 🎤 **Letras sincronizadas** | Estilo karaoke en la ficha: la línea que se canta se ilumina y se desplaza sola, con un ajuste ± si hace falta. Fuente: [LRCLIB](https://lrclib.net). |
+| 🪟 **Widget compacto** | Pequeña tarjeta siempre visible: carátula, título, artista, Auto Shazim, botón Shazimear y la línea de la letra. |
+| 📊 **Estadísticas** | Canciones y shazims, gráfico de 30 días, canción del mes, la más shazimeada, la primera, artistas y géneros, PC / micro / Auto. |
+| 🔔 **Pop-up Shazim** | Cuando Auto Shazim encuentra una canción aparece una tarjetita sobre la barra de tareas, sin robar el foco. O una notificación de Windows, con o sin sonido. |
+| ⬆️ **Actualizaciones integradas** | Shazim revisa GitHub una vez al día, descarga la nueva versión, comprueba su SHA-256 y se instala solo. |
 | 🌍 **4 idiomas** | Français, English, Español, Deutsch — cambio instantáneo. |
+
+### Novedades de la versión 2.1
+
+<p align="center">
+  <img src="docs/screenshots/lyrics.png" alt="Letras sincronizadas" width="49%">
+  <img src="docs/screenshots/stats.png" alt="Estadísticas" width="49%">
+</p>
+<p align="center">
+  <img src="docs/screenshots/theme-light.png" alt="Tema claro" width="49%">
+  <img src="docs/screenshots/widget.png" alt="Widget compacto" width="24%">
+  <img src="docs/screenshots/toast.png" alt="Pop-up Shazim" width="24%">
+</p>
 
 ## Instalación
 
-1. Ve a **[Releases](https://github.com/painfullfeet/Shazim/releases/latest)** y descarga `Shazim-Setup-x.y.z.exe` (unos 90 MB, .NET incluido).
+1. Ve a **[Releases](https://github.com/painfullfeet/Shazim/releases/latest)** y descarga `Shazim-Setup-x.y.z.exe` (unos 230 MB, .NET incluido).
 2. Haz doble clic, elige tus opciones y pulsa **Instalar**.
 
 <p align="center">
@@ -84,12 +101,12 @@ Aunque Shazim esté minimizado, pulsa **`Ctrl+Mayús+S`** desde cualquier aplica
 |---|---|
 | `Ctrl+Mayús+S` | Shazimear (en todo Windows) |
 | `Ctrl+Mayús+A` | Activar / desactivar Auto Shazim |
-| `Ctrl+1` · `Ctrl+2` · `Ctrl+3` | Escuchar · Biblioteca · Ajustes |
+| `Ctrl+1` · `Ctrl+2` · `Ctrl+3` · `Ctrl+4` | Escuchar · Biblioteca · Estadísticas · Ajustes |
 | `Ctrl+B` · `F11` | Barra lateral · Pantalla completa |
 
 ## Privacidad
 
-El audio se guarda **solo en memoria** durante la escucha y luego se borra: nada se escribe en el disco. Solo se envía una **huella espectral** calculada en tu PC, nunca el sonido. Sin cuenta, sin anuncios, sin estadísticas. Tus datos están en `%LOCALAPPDATA%\Shazim`.
+El audio se guarda **solo en memoria** durante la escucha y luego se borra: nada se escribe en el disco. Solo se envía una **huella espectral** calculada en tu PC, nunca el sonido. Sin cuenta, sin anuncios, sin estadísticas. Tus datos están en `%LOCALAPPDATA%\Shazim`. Las letras se piden a [LRCLIB](https://lrclib.net) solo con artista, título, álbum y duración; la búsqueda de actualizaciones consulta GitHub sin enviar nada personal. Ambas se pueden desactivar.
 
 ## Preguntas frecuentes
 
@@ -113,7 +130,7 @@ cd Shazim
 
 Creado por **Painfullfeet**, con la ayuda de **[Claude](https://claude.ai)**, el asistente de IA de Anthropic.
 
-Algoritmo de firma: portado de [SongRec](https://github.com/marin-m/SongRec) (GPL-3.0) · Audio: [NAudio](https://github.com/naudio/NAudio) (MIT) · Fuente: [Outfit](https://github.com/Outfitio/Outfit-Fonts) (SIL OFL) · Iconos: [Phosphor](https://phosphoricons.com) (MIT).
+Algoritmo de firma: portado de [SongRec](https://github.com/marin-m/SongRec) (GPL-3.0) · Audio: [NAudio](https://github.com/naudio/NAudio) (MIT) · Fuente: [Outfit](https://github.com/Outfitio/Outfit-Fonts) (SIL OFL) · Iconos: [Phosphor](https://phosphoricons.com) (MIT). · Letras: [LRCLIB](https://lrclib.net)
 
 Shazim es software libre bajo la licencia **[GNU GPL v3](LICENSE)**.
 

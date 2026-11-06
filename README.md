@@ -60,19 +60,36 @@ Il peut aussi utiliser ton micro pour reconnaître la musique de la pièce, ou l
 | 📚 **Bibliothèque** | Tous tes morceaux, recherche, favoris, tris, écoute des extraits dans la liste, export CSV ou JSON. |
 | 🔁 **Auto Shazim** | Écoute en continu en arrière-plan et note chaque nouveau morceau (idéal pour une playlist, un live ou un mix). |
 | 🌊 **Bouton vivant** | Le bouton d'écoute réagit à la musique : aura façon visualiseur ou pulsation du logo au rythme. |
-| 🎨 **Personnalisable** | 5 couleurs d'accent, barre latérale rétractable, plein écran, mini lecteur flottant. |
-| 🔔 **Toujours là** | Icône près de l'horloge, notifications Windows, raccourcis globaux, lancement avec Windows. |
+| 🎨 **Thèmes et couleurs** | 4 thèmes (*Nuit*, *Minuit* noir pur pour OLED, *Clair*, *Suivre Windows*), 5 couleurs d'accent ou ta propre couleur (teinte + code hexadécimal). |
+| 🎤 **Paroles synchronisées** | Façon karaoké sur la fiche du morceau : la ligne chantée s'allume et défile toute seule, avec un réglage ± si besoin. Source : [LRCLIB](https://lrclib.net). |
+| 🪟 **Widget compact** | Petite carte toujours visible : pochette, titre, artiste, Auto Shazim, bouton Shazimer et la ligne des paroles en cours. Déplaçable, transparence réglable. |
+| 📊 **Statistiques** | Morceaux et shazims, graphique des 30 derniers jours, morceau du mois, le plus shazimé, tout premier morceau, top artistes et genres, PC / micro / Auto. |
+| 🔔 **Pop-up Shazim** | Quand Auto Shazim trouve un morceau, une petite carte s'affiche au-dessus de la barre des tâches (❤ et Ouvrir), sans voler le focus. Ou une notification Windows, avec ou sans son. |
+| ⬆️ **Mises à jour intégrées** | Shazim vérifie GitHub une fois par jour, télécharge la nouvelle version, contrôle sa somme SHA-256 et s'installe tout seul. |
+| 🧭 **Toujours là** | Icône près de l'horloge, raccourcis globaux, lancement avec Windows, démarrage plus rapide. |
 | 🌍 **4 langues** | Français, English, Español, Deutsch — changement instantané, sans redémarrer. |
 
 <p align="center">
   <img src="docs/screenshots/track.png" alt="Fiche d'un morceau : pochette, plateformes, informations et historique" width="80%">
 </p>
 
+### Nouveautés de la version 2.1
+
+<p align="center">
+  <img src="docs/screenshots/lyrics.png" alt="Paroles synchronisées sur la fiche d'un morceau" width="49%">
+  <img src="docs/screenshots/stats.png" alt="Page Statistiques" width="49%">
+</p>
+<p align="center">
+  <img src="docs/screenshots/theme-light.png" alt="Thème Clair" width="49%">
+  <img src="docs/screenshots/widget.png" alt="Widget compact avec la ligne des paroles" width="24%">
+  <img src="docs/screenshots/toast.png" alt="Pop-up Shazim quand un morceau est trouvé" width="24%">
+</p>
+
 ## Installation
 
 ### 1. Télécharger
 
-Va sur la page **[Releases](https://github.com/painfullfeet/Shazim/releases/latest)** et télécharge `Shazim-Setup-x.y.z.exe` (environ 90 Mo, rien d'autre à installer : .NET est inclus).
+Va sur la page **[Releases](https://github.com/painfullfeet/Shazim/releases/latest)** et télécharge `Shazim-Setup-x.y.z.exe` (environ 230 Mo, rien d'autre à installer : .NET est inclus).
 
 ### 2. Lancer l'installateur
 
@@ -92,7 +109,7 @@ L'installation se fait **pour ton compte Windows uniquement**, dans `%LOCALAPPDA
 
 ### Mettre à jour
 
-Télécharge la nouvelle version et lance-la : elle remplace l'ancienne. **Ta bibliothèque et tes réglages sont conservés.**
+Shazim te prévient tout seul quand une nouvelle version sort (**Réglages → À propos → Rechercher les mises à jour**) : un clic sur **Mettre à jour** la télécharge, vérifie sa somme SHA-256 et l'installe. Tu peux aussi télécharger la nouvelle version et la lancer : elle remplace l'ancienne. **Ta bibliothèque et tes réglages sont conservés.**
 
 ### Désinstaller
 
@@ -149,7 +166,7 @@ Active l'interrupteur **Auto Shazim** dans la barre latérale : Shazim écoute e
 | `Ctrl+Maj+S` | Shazimer (partout dans Windows) |
 | `Ctrl+Maj+A` | Activer / couper Auto Shazim (partout dans Windows) |
 | `Espace` | Shazimer / écouter l'extrait sélectionné |
-| `Ctrl+1` · `Ctrl+2` · `Ctrl+3` | Écouter · Bibliothèque · Réglages |
+| `Ctrl+1` · `Ctrl+2` · `Ctrl+3` · `Ctrl+4` | Écouter · Bibliothèque · Statistiques · Réglages |
 | `Ctrl+B` | Réduire / agrandir la barre latérale |
 | `F11` | Plein écran |
 | `Entrée` | Ouvrir le morceau sélectionné |
@@ -161,6 +178,7 @@ Active l'interrupteur **Auto Shazim** dans la barre latérale : Shazim écoute e
 - Seule une **empreinte spectrale** calculée sur ton PC est envoyée au service de reconnaissance, jamais le son.
 - Pas de compte, pas de publicité, pas de statistiques d'utilisation.
 - Tes données restent chez toi, dans `%LOCALAPPDATA%\Shazim` : bibliothèque (`shazim.db`), réglages, pochettes en cache, journal.
+- Les paroles sont demandées à [LRCLIB](https://lrclib.net) avec seulement l'artiste, le titre, l'album et la durée du morceau, puis gardées en cache. La recherche de mises à jour interroge GitHub sans rien envoyer de personnel. Les deux se désactivent dans les réglages.
 
 ## Questions fréquentes
 
@@ -237,6 +255,7 @@ Créé par **Painfullfeet**, avec l'aide de **[Claude](https://claude.ai)**, l'a
 | Icônes | [Phosphor Icons](https://phosphoricons.com) | [MIT](assets/licenses/Phosphor-MIT.txt) |
 | Inspiration design | [ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) | — |
 | Métadonnées et extraits | Service de reconnaissance Shazam | — |
+| Paroles synchronisées | [LRCLIB](https://lrclib.net) (base libre et gratuite) | — |
 
 Shazim est un logiciel libre distribué sous licence **[GNU GPL v3](LICENSE)**.
 

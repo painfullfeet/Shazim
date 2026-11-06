@@ -60,19 +60,36 @@ It can also use your microphone to recognise the music in the room, or both at t
 | 📚 **Library** | All your tracks, search, favourites, sorting, previews right in the list, CSV or JSON export. |
 | 🔁 **Auto Shazim** | Listens non-stop in the background and saves every new track (great for a playlist, a live set or a mix). |
 | 🌊 **Living button** | The listen button reacts to the music: a visualiser-style aura or a logo pulse on the beat. |
-| 🎨 **Customisable** | 5 accent colours, collapsible sidebar, full screen, floating mini player. |
-| 🔔 **Always there** | Notification-area icon, Windows notifications, global shortcuts, start with Windows. |
+| 🎨 **Themes and colours** | 4 themes (*Night*, *Midnight* pure black for OLED, *Light*, *Follow Windows*), 5 accent colours or your own (hue + hex code). |
+| 🎤 **Synced lyrics** | Karaoke-style on the track page: the line being sung lights up and scrolls by itself, with a ± nudge if needed. Source: [LRCLIB](https://lrclib.net). |
+| 🪟 **Compact widget** | Small always-on-top card: artwork, title, artist, Auto Shazim, Shazim button and the current lyrics line. Movable, adjustable transparency. |
+| 📊 **Statistics** | Tracks and shazims, last 30 days chart, track of the month, most shazimed, very first track, top artists and genres, PC / mic / Auto. |
+| 🔔 **Shazim pop-up** | When Auto Shazim finds a track, a small card shows above the taskbar (❤ and Open) without stealing the focus. Or a Windows notification, with or without sound. |
+| ⬆️ **Built-in updates** | Shazim checks GitHub once a day, downloads the new version, verifies its SHA-256 and installs it by itself. |
+| 🧭 **Always there** | Notification-area icon, global shortcuts, start with Windows, faster start-up. |
 | 🌍 **4 languages** | Français, English, Español, Deutsch — switch instantly, no restart. |
 
 <p align="center">
   <img src="docs/screenshots/track.png" alt="Track page: artwork, platforms, details and history" width="80%">
 </p>
 
+### New in version 2.1
+
+<p align="center">
+  <img src="docs/screenshots/lyrics.png" alt="Synced lyrics on a track page" width="49%">
+  <img src="docs/screenshots/stats.png" alt="Statistics page" width="49%">
+</p>
+<p align="center">
+  <img src="docs/screenshots/theme-light.png" alt="Light theme" width="49%">
+  <img src="docs/screenshots/widget.png" alt="Compact widget with the lyrics line" width="24%">
+  <img src="docs/screenshots/toast.png" alt="Shazim pop-up when a track is found" width="24%">
+</p>
+
 ## Installation
 
 ### 1. Download
 
-Open the **[Releases](https://github.com/painfullfeet/Shazim/releases/latest)** page and download `Shazim-Setup-x.y.z.exe` (about 90 MB, nothing else to install: .NET is included).
+Open the **[Releases](https://github.com/painfullfeet/Shazim/releases/latest)** page and download `Shazim-Setup-x.y.z.exe` (about 230 MB, nothing else to install: .NET is included).
 
 ### 2. Run the installer
 
@@ -92,7 +109,7 @@ Shazim installs **for your Windows account only**, in `%LOCALAPPDATA%\Programs\S
 
 ### Update
 
-Download the new version and run it: it replaces the old one. **Your library and settings are kept.**
+Shazim tells you when a new version is out (**Settings → About → Check for updates**): one click on **Update** downloads it, verifies its SHA-256 and installs it. You can also download the new version and run it: it replaces the old one. **Your library and settings are kept.**
 
 ### Uninstall
 
@@ -144,7 +161,7 @@ Turn on the **Auto Shazim** switch in the sidebar: Shazim listens in a loop and 
 | `Ctrl+Shift+S` | Shazim (anywhere in Windows) |
 | `Ctrl+Shift+A` | Turn Auto Shazim on / off (anywhere in Windows) |
 | `Space` | Shazim / play the selected preview |
-| `Ctrl+1` · `Ctrl+2` · `Ctrl+3` | Listen · Library · Settings |
+| `Ctrl+1` · `Ctrl+2` · `Ctrl+3` · `Ctrl+4` | Listen · Library · Statistics · Settings |
 | `Ctrl+B` | Collapse / expand the sidebar |
 | `F11` | Full screen |
 | `Enter` | Open the selected track |
@@ -156,6 +173,7 @@ Turn on the **Auto Shazim** switch in the sidebar: Shazim listens in a loop and 
 - Only a **spectral fingerprint** computed on your PC is sent to the recognition service, never the sound itself.
 - No account, no ads, no usage statistics.
 - Your data stays on your PC, in `%LOCALAPPDATA%\Shazim`: library (`shazim.db`), settings, cached artwork, log.
+- Lyrics are requested from [LRCLIB](https://lrclib.net) with only the artist, title, album and length of the track, then cached. The update check asks GitHub without sending anything personal. Both can be turned off in the settings.
 
 ## FAQ
 
@@ -230,6 +248,7 @@ Made by **Painfullfeet**, with the help of **[Claude](https://claude.ai)**, Anth
 | Icons | [Phosphor Icons](https://phosphoricons.com) | [MIT](assets/licenses/Phosphor-MIT.txt) |
 | Design inspiration | [ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) | — |
 | Metadata and previews | Shazam recognition service | — |
+| Synced lyrics | [LRCLIB](https://lrclib.net) (free and open database) | — |
 
 Shazim is free software released under the **[GNU GPL v3](LICENSE)**.
 

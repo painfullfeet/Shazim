@@ -23,6 +23,9 @@ public class RecognitionResult
 
     public bool IsMatch => Status == RecognitionStatus.Match && Track != null;
 
+    /// <summary>Where the sample starts in the track, in seconds (Shazam's matches[0].offset).</summary>
+    public double? MatchOffsetSeconds { get; init; }
+
     public static RecognitionResult NoMatch(string provider, int? retryMs = null) =>
         new() { Status = RecognitionStatus.NoMatch, Provider = provider, RetryAfterMs = retryMs };
 

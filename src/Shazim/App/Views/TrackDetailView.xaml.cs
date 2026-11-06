@@ -28,12 +28,28 @@ public partial class TrackDetailView : UserControl
         _library = services.GetRequiredService<LibraryService>();
         _player = services.GetRequiredService<PreviewPlayer>();
         _showHistory = showHistory;
+        _now = services.GetRequiredService<NowPlayingService>();
+        var settings = services.GetRequiredService<SettingsService>();
+        _settingsLyricsEnabled = () => settings.GetSettings().Lyrics.Enabled;
         InitializeComponent();
+        _lyricsTimer.Tick += (_, _) => Tick();
 
         DeleteButton.Visibility = allowDelete ? Visibility.Visible : Visibility.Collapsed;
         _player.PropertyChanged += OnPlayerChanged;
-        Unloaded += (_, _) => _player.PropertyChanged -= OnPlayerChanged;
-        Loaded += (_, _) => { _player.PropertyChanged -= OnPlayerChanged; _player.PropertyChanged += OnPlayerChanged; UpdatePlayer(); };
+        _now.Changed += OnNowPlayingChanged;
+        Unloaded += (_, _) =>
+        {
+            _player.PropertyChanged -= OnPlayerChanged;
+            _now.Changed -= OnNowPlayingChanged;
+            _lyricsTimer.Stop();
+        };
+        Loaded += (_, _) =>
+        {
+            _player.PropertyChanged -= OnPlayerChanged; _player.PropertyChanged += OnPlayerChanged;
+            _now.Changed -= OnNowPlayingChanged; _now.Changed += OnNowPlayingChanged;
+            UpdatePlayer();
+            if (_lyrics != null) UpdateLive();
+        };
     }
 
     public Track? Track => _track;
@@ -96,8 +112,124 @@ public partial class TrackDetailView : UserControl
         BuildPlatforms(track);
         BuildInfo(track);
         UpdatePlayer();
+        _ = LoadLyricsAsync(track);
         await LoadHistoryAsync(track);
     }
+
+    // ===== Paroles =====
+
+    private readonly NowPlayingService _now;
+    private readonly System.Windows.Threading.DispatcherTimer _lyricsTimer = new() { Interval = TimeSpan.FromMilliseconds(150) };
+    private Core.Lyrics.TrackLyrics? _lyrics;
+    private int _currentLine = -2;
+
+    private async Task LoadLyricsAsync(Track track)
+    {
+        _lyricsTimer.Stop();
+        _lyrics = null;
+        _currentLine = -2;
+        LyricsLines.Children.Clear();
+        NudgePanel.Visibility = Visibility.Collapsed;
+        if (!_settingsLyricsEnabled()) { LyricsSection.Visibility = Visibility.Collapsed; return; }
+
+        LyricsSection.Visibility = Visibility.Visible;
+        LyricsBadge.Text = "";
+        LyricsLines.Children.Add(LyricText(Loc.T("lyrics.loading"), muted: true));
+
+        var lyrics = _now.Track?.Id == track.Id && _now.Lyrics != null ? _now.Lyrics : await _now.GetLyricsAsync(track);
+        if (_track?.Id != track.Id) return;
+        ShowLyrics(lyrics);
+    }
+
+    private Func<bool> _settingsLyricsEnabled = () => true;
+
+    private void ShowLyrics(Core.Lyrics.TrackLyrics? lyrics)
+    {
+        _lyrics = lyrics;
+        _currentLine = -2;
+        LyricsLines.Children.Clear();
+        if (lyrics == null || (lyrics.IsEmpty && !lyrics.IsInstrumental))
+        {
+            LyricsLines.Children.Add(LyricText(Loc.T("lyrics.none"), muted: true));
+            LyricsBadge.Text = "";
+            NudgePanel.Visibility = Visibility.Collapsed;
+            return;
+        }
+        if (lyrics.IsEmpty)
+        {
+            LyricsLines.Children.Add(LyricText(Loc.T("lyrics.instrumental"), muted: true));
+            return;
+        }
+        foreach (var line in lyrics.Lines)
+            LyricsLines.Children.Add(LyricText(line.Text.Length == 0 ? "♪" : line.Text, muted: false));
+        UpdateLive();
+    }
+
+    private TextBlock LyricText(string text, bool muted)
+    {
+        var t = new TextBlock
+        {
+            Text = text, TextWrapping = TextWrapping.Wrap, FontSize = 15, Margin = new Thickness(0, 3, 0, 3),
+            FontFamily = (FontFamily)FindResource("BodyFont")
+        };
+        t.SetResourceReference(TextBlock.ForegroundProperty, muted ? "MistBrush" : "PaperBrush");
+        return t;
+    }
+
+    /// <summary>Live when this track is the one playing now: highlight + follow, else plain text.</summary>
+    private void UpdateLive()
+    {
+        bool live = _lyrics is { IsSynced: true } && _track != null && _now.IsLive(_track.Id, DateTime.UtcNow);
+        LyricsBadge.Text = live ? Loc.T("lyrics.live") : "";
+        NudgePanel.Visibility = live ? Visibility.Visible : Visibility.Collapsed;
+        NudgeText.Text = Loc.F("lyrics.nudge", _now.Nudge.ToString("+0.0;-0.0;0", Loc.Instance.Culture));
+        if (live && IsLoaded) _lyricsTimer.Start();
+        else
+        {
+            _lyricsTimer.Stop();
+            if (_currentLine != -2) Highlight(-1, live: false);
+        }
+        if (live) Tick();
+    }
+
+    private void Tick()
+    {
+        if (_lyrics == null || _track == null) return;
+        if (!_now.IsLive(_track.Id, DateTime.UtcNow)) { UpdateLive(); return; }
+        Highlight(_now.CurrentLine(DateTime.UtcNow), live: true);
+    }
+
+    private void Highlight(int index, bool live)
+    {
+        if (index == _currentLine) return;
+        _currentLine = index;
+        for (int i = 0; i < LyricsLines.Children.Count; i++)
+        {
+            if (LyricsLines.Children[i] is not TextBlock t) continue;
+            bool current = live && i == index;
+            t.FontWeight = current ? FontWeights.Bold : FontWeights.Normal;
+            t.FontSize = current ? 18 : 15;
+            t.SetResourceReference(TextBlock.ForegroundProperty, current ? "SignalBrush" : "PaperBrush");
+            t.Opacity = !live || current ? 1 : i < index ? 0.45 : 0.75;
+        }
+        // Keep the line being sung in the middle of the box.
+        if (live && index >= 0 && index < LyricsLines.Children.Count && LyricsLines.Children[index] is FrameworkElement line)
+        {
+            LyricsLines.UpdateLayout();
+            var y = line.TransformToAncestor(LyricsLines).Transform(new Point(0, 0)).Y;
+            LyricsScroller.ScrollToVerticalOffset(Math.Max(0, y - LyricsScroller.ViewportHeight / 2 + line.ActualHeight / 2));
+        }
+    }
+
+    private void OnNowPlayingChanged(object? sender, EventArgs e)
+    {
+        if (_track == null || _now.Track?.Id != _track.Id) { if (_lyrics != null) UpdateLive(); return; }
+        if (_now.Lyrics != null && !ReferenceEquals(_now.Lyrics, _lyrics)) ShowLyrics(_now.Lyrics);
+        else UpdateLive();
+    }
+
+    private void NudgeEarlier_Click(object sender, RoutedEventArgs e) { _now.AddNudge(-0.5); _currentLine = -2; Tick(); }
+    private void NudgeLater_Click(object sender, RoutedEventArgs e) { _now.AddNudge(0.5); _currentLine = -2; Tick(); }
 
     // ===== Plateformes =====
 

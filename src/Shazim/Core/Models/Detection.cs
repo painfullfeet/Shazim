@@ -13,6 +13,9 @@ public class Detection
     [JsonPropertyName("isAuto")] public bool IsAuto { get; set; }
     [JsonPropertyName("durationMs")] public long DurationMs { get; set; }
 
+    /// <summary>"pc" (what the PC played) or "mic"; empty for detections saved before 2.1.</summary>
+    [JsonPropertyName("sourceKind")] public string SourceKind { get; set; } = string.Empty;
+
     /// <summary>Joined track (filled by history queries).</summary>
     [JsonIgnore] public Track? Track { get; set; }
 

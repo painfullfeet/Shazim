@@ -2,6 +2,7 @@
 .SYNOPSIS  Builds the release installer: dist\Shazim-Setup-<version>.exe
 .DESCRIPTION
     One self-contained, single-file executable (no .NET needed on the target PC).
+    Not compressed: the window shows in ~1.5 s instead of ~2.5 s (measured), for a bigger file.
     Named Shazim-Setup*.exe it opens the installer; once installed it is Shazim itself.
     Also writes a SHA-256 checksum next to it.
 #>
@@ -18,7 +19,7 @@ Write-Host "Building Shazim $version (single file, win-x64)..." -ForegroundColor
 & $dotnet publish $appProject -c Release -r win-x64 --self-contained true -o $staging -nologo -v q `
     -p:PublishSingleFile=true `
     -p:IncludeNativeLibrariesForSelfExtract=true `
-    -p:EnableCompressionInSingleFile=true `
+    -p:EnableCompressionInSingleFile=false `
     -p:PublishReadyToRun=true `
     -p:DebugType=none `
     -p:GenerateDocumentationFile=false

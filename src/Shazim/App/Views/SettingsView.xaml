@@ -182,14 +182,54 @@
                 </StackPanel>
             </Border>
 
+            <!-- Widget et paroles -->
+            <TextBlock Text="{infra:T widget.title}" Style="{StaticResource SectionTitle}" Margin="0,0,0,10"/>
+            <Border Style="{StaticResource Panel}" Margin="0,0,0,22">
+                <StackPanel>
+                    <Grid Style="{StaticResource Row}">
+                        <StackPanel Margin="0,0,24,0">
+                            <TextBlock Text="{infra:T widget.opacity}" Style="{StaticResource RowLabel}"/>
+                            <TextBlock Text="{infra:T widget.opacity_hint}" Style="{StaticResource RowHint}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <Slider x:Name="WidgetOpacitySlider" Width="240" Minimum="0.55" Maximum="1" SmallChange="0.05" LargeChange="0.1"
+                                    VerticalAlignment="Center" ValueChanged="WidgetOpacity_Changed" AutomationProperties.Name="{infra:T widget.opacity}"/>
+                            <TextBlock x:Name="WidgetOpacityText" Style="{StaticResource MutedText}" Width="48" TextAlignment="Right" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+                    <ToggleButton x:Name="WidgetLyricsSwitch" Style="{StaticResource Switch}" Margin="0,9" Click="Any_Click">
+                        <TextBlock Text="{infra:T widget.show_lyrics}" Style="{StaticResource RowLabel}"/>
+                    </ToggleButton>
+                    <ToggleButton x:Name="LyricsSwitch" Style="{StaticResource Switch}" Margin="0,9" Click="Any_Click">
+                        <StackPanel>
+                            <TextBlock Text="{infra:T lyrics.enabled}" Style="{StaticResource RowLabel}"/>
+                            <TextBlock Text="{infra:T lyrics.enabled_hint}" Style="{StaticResource RowHint}"/>
+                        </StackPanel>
+                    </ToggleButton>
+                </StackPanel>
+            </Border>
+
             <!-- Notifications et raccourcis -->
             <TextBlock Text="{infra:T settings.notifications_et_raccourcis}" Style="{StaticResource SectionTitle}" Margin="0,0,0,10"/>
             <Border Style="{StaticResource Panel}" Margin="0,0,0,22">
                 <StackPanel>
-                    <ToggleButton x:Name="NotifySwitch" Style="{StaticResource Switch}" Margin="0,9" Click="Any_Click">
+                    <Grid Style="{StaticResource Row}">
+                        <StackPanel Margin="0,0,24,0">
+                            <TextBlock Text="{infra:T notif.style}" Style="{StaticResource RowLabel}"/>
+                            <TextBlock Text="{infra:T notif.style_hint}" Style="{StaticResource RowHint}"/>
+                        </StackPanel>
+                        <Border Width="300" HorizontalAlignment="Right" VerticalAlignment="Center" Background="{DynamicResource InkBrush}" CornerRadius="10" Padding="3">
+                            <UniformGrid Rows="1">
+                                <RadioButton x:Name="NotifyPopup" Style="{StaticResource SegmentItem}" Content="{infra:T notif.popup}" GroupName="notif" Click="Any_Click"/>
+                                <RadioButton x:Name="NotifyWindows" Style="{StaticResource SegmentItem}" Content="{infra:T notif.windows}" GroupName="notif" Click="Any_Click"/>
+                                <RadioButton x:Name="NotifyNone" Style="{StaticResource SegmentItem}" Content="{infra:T notif.none}" GroupName="notif" Click="Any_Click"/>
+                            </UniformGrid>
+                        </Border>
+                    </Grid>
+                    <ToggleButton x:Name="NotifySoundSwitch" Style="{StaticResource Switch}" Margin="0,9" Click="Any_Click">
                         <StackPanel>
-                            <TextBlock Text="{infra:T settings.notifier_quand_un_morceau_est}" Style="{StaticResource RowLabel}"/>
-                            <TextBlock Text="{infra:T settings.notification_windows_quand_la_fenetre}" Style="{StaticResource RowHint}"/>
+                            <TextBlock Text="{infra:T notif.sound}" Style="{StaticResource RowLabel}"/>
+                            <TextBlock Text="{infra:T notif.sound_hint}" Style="{StaticResource RowHint}"/>
                         </StackPanel>
                     </ToggleButton>
                     <ToggleButton x:Name="AutoOnlySwitch" Style="{StaticResource Switch}" Margin="0,9" Click="Any_Click">

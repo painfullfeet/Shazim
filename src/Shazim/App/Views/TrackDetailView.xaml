@@ -82,6 +82,30 @@
                     <WrapPanel x:Name="PlatformsPanel"/>
                 </StackPanel>
 
+                <!-- Paroles (synchronisées quand le morceau passe en ce moment) -->
+                <StackPanel x:Name="LyricsSection" Margin="0,22,0,0" Visibility="Collapsed">
+                    <DockPanel Margin="0,0,0,10">
+                        <StackPanel x:Name="NudgePanel" DockPanel.Dock="Right" Orientation="Horizontal" Visibility="Collapsed" VerticalAlignment="Bottom">
+                            <Button Style="{StaticResource GhostButton}" Content="− 0,5 s" Padding="10,4" Click="NudgeEarlier_Click"
+                                    ToolTip="{infra:T lyrics.earlier}" AutomationProperties.Name="{infra:T lyrics.earlier}"/>
+                            <TextBlock x:Name="NudgeText" Style="{StaticResource MutedText}" FontSize="12" VerticalAlignment="Center" Margin="6,0"/>
+                            <Button Style="{StaticResource GhostButton}" Content="+ 0,5 s" Padding="10,4" Click="NudgeLater_Click"
+                                    ToolTip="{infra:T lyrics.later}" AutomationProperties.Name="{infra:T lyrics.later}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{infra:T lyrics.title}" Style="{StaticResource SectionTitle}"/>
+                            <TextBlock x:Name="LyricsBadge" Style="{StaticResource MutedText}" FontSize="12" Foreground="{DynamicResource SignalBrush}"
+                                       VerticalAlignment="Bottom" Margin="12,0,0,2"/>
+                        </StackPanel>
+                    </DockPanel>
+                    <Border Style="{StaticResource Panel}" Padding="22,14">
+                        <ScrollViewer x:Name="LyricsScroller" MaxHeight="320" VerticalScrollBarVisibility="Auto" Focusable="False">
+                            <StackPanel x:Name="LyricsLines"/>
+                        </ScrollViewer>
+                    </Border>
+                    <TextBlock Text="{infra:T lyrics.source}" Style="{StaticResource MutedText}" FontSize="11" Margin="2,6,0,0"/>
+                </StackPanel>
+
                 <!-- Informations -->
                 <TextBlock Text="{infra:T trackdetail.informations}" Style="{StaticResource SectionTitle}" Margin="0,22,0,12"/>
                 <Border Style="{StaticResource Panel}" Padding="22,16">

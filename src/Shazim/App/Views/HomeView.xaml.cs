@@ -21,7 +21,21 @@ public partial class HomeView : UserControl, IRefreshable
     private readonly SettingsService _settings;
     private readonly IAudioCaptureService _capture;
     private readonly PreviewPlayer _player;
-    private readonly TrackDetailView _detail;
+    private readonly IServiceProvider _services;
+    private TrackDetailView? _detailView;
+
+    /// <summary>The result sheet, built the first time a track is shown (lighter start).</summary>
+    private TrackDetailView Detail
+    {
+        get
+        {
+            if (_detailView != null) return _detailView;
+            _detailView = new TrackDetailView(_services, showHistory: false, allowDelete: false);
+            _detailView.SetTopInset(52);
+            DetailHost.Content = _detailView;
+            return _detailView;
+        }
+    }
     private readonly MusicVisualizer _visualizer;
     private readonly float[] _bandsRaw = new float[MusicVisualizer.BandCount];
     private readonly double[] _bands = new double[MusicVisualizer.BandCount];
@@ -43,9 +57,7 @@ public partial class HomeView : UserControl, IRefreshable
         _visualizer = services.GetRequiredService<MusicVisualizer>();
         InitializeComponent();
 
-        _detail = new TrackDetailView(services, showHistory: false, allowDelete: false);
-        _detail.SetTopInset(52);
-        DetailHost.Content = _detail;
+        _services = services;
 
         if (Brand.Logo is { } logo)
         {
@@ -58,7 +70,8 @@ public partial class HomeView : UserControl, IRefreshable
         _library.Changed += (_, _) => QueueRecentRefresh();
         _settings.Saved += (_, _) => Dispatcher.BeginInvoke(async () => await UpdateSourceAsync());
 
-        Loaded += (_, _) => { Focus(); StartIdle(); UpdateReactive(); };
+        // The music-reactive capture starts once the window is drawn, not before.
+        Loaded += (_, _) => { Focus(); StartIdle(); Dispatcher.BeginInvoke(UpdateReactive, System.Windows.Threading.DispatcherPriority.ApplicationIdle); };
         Unloaded += (_, _) => { StopIdle(); UpdateReactive(); };
         IsVisibleChanged += (_, _) => UpdateReactive();
         _settings.Saved += (_, _) => Dispatcher.BeginInvoke(UpdateReactive);
@@ -440,10 +453,10 @@ public partial class HomeView : UserControl, IRefreshable
 
     private async Task ShowTrackAsync(Track track, string? badge)
     {
-        await _detail.ShowAsync(track, badge);
+        await Detail.ShowAsync(track, badge);
         ListenPanel.Visibility = Visibility.Collapsed;
         ResultPanel.Visibility = Visibility.Visible;
-        _detail.PlayReveal();
+        Detail.PlayReveal();
 
         if (!Shell.ReduceMotion)
         {

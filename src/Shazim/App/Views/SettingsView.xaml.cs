@@ -186,6 +186,14 @@ public partial class SettingsView : UserControl, IRefreshable
         _settings.Save();
     }
 
+    private void WidgetOpacity_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (WidgetOpacityText != null) WidgetOpacityText.Text = $"{Math.Round(e.NewValue * 100)} %";
+        if (_loading || !IsLoaded) return;
+        _settings.GetSettings().Widget.Opacity = Math.Round(e.NewValue, 2);
+        _settings.Save(); // the widget follows live
+    }
+
     private void Theme_Click(object sender, RoutedEventArgs e)
     {
         var mode = ThemeMidnight.IsChecked == true ? ThemeMode.Midnight
@@ -233,9 +241,17 @@ public partial class SettingsView : UserControl, IRefreshable
             EffectPulse.IsChecked = s.General.ButtonEffect == ButtonEffect.Pulse;
             EffectOff.IsChecked = s.General.ButtonEffect == ButtonEffect.Off;
             AutoStartSwitch.IsChecked = s.AutoShazam.AutoStart;
-            NotifySwitch.IsChecked = s.Notifications.Enabled;
+            NotifyPopup.IsChecked = s.Notifications.Style == NotificationStyle.Popup;
+            NotifyWindows.IsChecked = s.Notifications.Style == NotificationStyle.Windows;
+            NotifyNone.IsChecked = s.Notifications.Style == NotificationStyle.None;
+            NotifySoundSwitch.IsChecked = s.Notifications.Sound;
+            NotifySoundSwitch.IsEnabled = s.Notifications.Style == NotificationStyle.Windows;
             AutoOnlySwitch.IsChecked = s.Notifications.AutoOnly;
             AutoOnlySwitch.IsEnabled = s.Notifications.Enabled;
+            WidgetOpacitySlider.Value = s.Widget.Opacity;
+            WidgetOpacityText.Text = $"{Math.Round(s.Widget.Opacity * 100)} %";
+            WidgetLyricsSwitch.IsChecked = s.Widget.ShowLyrics;
+            LyricsSwitch.IsChecked = s.Lyrics.Enabled;
             HotkeysSwitch.IsChecked = s.Hotkeys.Enabled;
             IdentifyHotkeyBox.Text = s.Hotkeys.Identify;
             AutoHotkeyBox.Text = s.Hotkeys.ToggleAuto;
@@ -289,9 +305,15 @@ public partial class SettingsView : UserControl, IRefreshable
         s.General.ButtonEffect = EffectPulse.IsChecked == true ? ButtonEffect.Pulse
             : EffectOff.IsChecked == true ? ButtonEffect.Off : ButtonEffect.Aura;
 
-        s.Notifications.Enabled = NotifySwitch.IsChecked == true;
+        s.Notifications.Style = NotifyWindows.IsChecked == true ? NotificationStyle.Windows
+            : NotifyNone.IsChecked == true ? NotificationStyle.None : NotificationStyle.Popup;
+        s.Notifications.Enabled = s.Notifications.Style != NotificationStyle.None;
+        s.Notifications.Sound = NotifySoundSwitch.IsChecked == true;
+        NotifySoundSwitch.IsEnabled = s.Notifications.Style == NotificationStyle.Windows;
         s.Notifications.AutoOnly = AutoOnlySwitch.IsChecked == true;
         AutoOnlySwitch.IsEnabled = s.Notifications.Enabled;
+        s.Widget.ShowLyrics = WidgetLyricsSwitch.IsChecked == true;
+        s.Lyrics.Enabled = LyricsSwitch.IsChecked == true;
 
         s.Hotkeys.Enabled = HotkeysSwitch.IsChecked == true;
         IdentifyHotkeyBox.IsEnabled = AutoHotkeyBox.IsEnabled = s.Hotkeys.Enabled;

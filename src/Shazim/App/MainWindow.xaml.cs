@@ -32,6 +32,7 @@ public partial class MainWindow : Window
 
         _navKeys[NavHome] = "mainwin.ecouter";
         _navKeys[NavLibrary] = "mainwin.bibliotheque";
+        _navKeys[NavStats] = "mainwin.statistiques";
         _navKeys[NavSettings] = "mainwin.reglages";
 
         BrandLogo.Source = Brand.Logo;
@@ -55,6 +56,7 @@ public partial class MainWindow : Window
             view = key switch
             {
                 "library" => new LibraryView(_services),
+                "stats" => new StatsView(_services),
                 "settings" => new SettingsView(_services),
                 _ => new HomeView(_services)
             };
@@ -76,6 +78,7 @@ public partial class MainWindow : Window
         var nav = key switch
         {
             "library" => NavLibrary,
+            "stats" => NavStats,
             "settings" => NavSettings,
             _ => NavHome
         };
@@ -85,7 +88,7 @@ public partial class MainWindow : Window
     private void Nav_Checked(object sender, RoutedEventArgs e)
     {
         if (!IsInitialized) return;
-        var key = sender == NavLibrary ? "library" : sender == NavSettings ? "settings" : "home";
+        var key = sender == NavLibrary ? "library" : sender == NavStats ? "stats" : sender == NavSettings ? "settings" : "home";
         if (Host.Content != (_views.TryGetValue(key, out var v) ? v : null))
             Navigate(key);
     }
@@ -115,7 +118,8 @@ public partial class MainWindow : Window
         {
             Key.D1 or Key.NumPad1 => "home",
             Key.D2 or Key.NumPad2 => "library",
-            Key.D3 or Key.NumPad3 => "settings",
+            Key.D3 or Key.NumPad3 => "stats",
+            Key.D4 or Key.NumPad4 => "settings",
             _ => null
         };
         if (key != null)

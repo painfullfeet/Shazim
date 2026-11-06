@@ -38,7 +38,7 @@ public class LibraryService
 
     public Task<Track?> GetTrackAsync(string id) => _repository.GetTrackByIdAsync(id);
 
-    public async Task<int> RecordDetectionAsync(string trackId, float confidence, string audioDevice, bool isAuto)
+    public async Task<int> RecordDetectionAsync(string trackId, float confidence, string audioDevice, bool isAuto, string sourceKind = "")
     {
         var id = await _repository.AddDetectionAsync(new Detection
         {
@@ -46,6 +46,7 @@ public class LibraryService
             Confidence = confidence,
             AudioDevice = audioDevice,
             IsAuto = isAuto,
+            SourceKind = sourceKind,
             DetectedAt = DateTime.UtcNow
         }).ConfigureAwait(false);
         OnChanged();
@@ -120,6 +121,14 @@ public class LibraryService
         await _repository.DeleteTrackAsync(trackId).ConfigureAwait(false);
         _logger.LogInformation("Track deleted: {TrackId}", trackId);
         OnChanged();
+    }
+
+    /// <summary>Numbers for the statistics page (<paramref name="now"/> is local time).</summary>
+    public async Task<LibraryStats> GetStatsAsync(DateTime now)
+    {
+        var detections = await _repository.GetAllDetectionsAsync().ConfigureAwait(false);
+        var tracks = await _repository.GetAllTracksAsync().ConfigureAwait(false);
+        return LibraryStats.Compute(detections, tracks, now);
     }
 
     public Task<int> GetTrackCountAsync() => _repository.GetTrackCountAsync();

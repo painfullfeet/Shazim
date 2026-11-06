@@ -13,7 +13,7 @@ namespace Shazim.Data.Repositories;
 /// </summary>
 public class SqliteTrackRepository : ITrackRepository
 {
-    private const int SchemaVersion = 2;
+    private const int SchemaVersion = 3;
 
     private readonly string _connectionString;
     private readonly ILogger<SqliteTrackRepository>? _logger;
@@ -96,6 +96,17 @@ public class SqliteTrackRepository : ITrackRepository
                 if (!columns.Contains(col))
                     Execute(conn, $"ALTER TABLE Tracks ADD COLUMN {col} TEXT NOT NULL DEFAULT ''");
             }
+
+            // v3: where each detection was heard (PC or microphone), for the statistics.
+            var detectionColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = "PRAGMA table_info(Detections)";
+                using var r = cmd.ExecuteReader();
+                while (r.Read()) detectionColumns.Add(r.GetString(1));
+            }
+            if (!detectionColumns.Contains("SourceKind"))
+                Execute(conn, "ALTER TABLE Detections ADD COLUMN SourceKind TEXT NOT NULL DEFAULT ''");
 
             // Older versions did not enable foreign keys, which left orphan rows behind.
             Execute(conn, @"
@@ -218,8 +229,8 @@ public class SqliteTrackRepository : ITrackRepository
         await using var conn = await OpenAsync().ConfigureAwait(false);
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = @"
-            INSERT INTO Detections (TrackId, DetectedAt, Confidence, AudioDevice, IsAuto, DurationMs)
-            VALUES (@trackId, @at, @conf, @device, @auto, @dur);
+            INSERT INTO Detections (TrackId, DetectedAt, Confidence, AudioDevice, IsAuto, DurationMs, SourceKind)
+            VALUES (@trackId, @at, @conf, @device, @auto, @dur, @kind);
             SELECT last_insert_rowid();";
         cmd.Parameters.AddWithValue("@trackId", detection.TrackId);
         cmd.Parameters.AddWithValue("@at", detection.DetectedAt.ToUniversalTime().ToString("O"));
@@ -227,6 +238,7 @@ public class SqliteTrackRepository : ITrackRepository
         cmd.Parameters.AddWithValue("@device", detection.AudioDevice ?? "");
         cmd.Parameters.AddWithValue("@auto", detection.IsAuto ? 1 : 0);
         cmd.Parameters.AddWithValue("@dur", detection.DurationMs);
+        cmd.Parameters.AddWithValue("@kind", detection.SourceKind ?? "");
         detection.Id = Convert.ToInt32(await cmd.ExecuteScalarAsync().ConfigureAwait(false));
         return detection.Id;
     }
@@ -241,7 +253,7 @@ public class SqliteTrackRepository : ITrackRepository
         await using var conn = await OpenAsync().ConfigureAwait(false);
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = $@"
-            SELECT {TrackColumns}, d.Id, d.TrackId, d.DetectedAt, d.Confidence, d.AudioDevice, d.IsAuto, d.DurationMs
+            SELECT {TrackColumns}, d.Id, d.TrackId, d.DetectedAt, d.Confidence, d.AudioDevice, d.IsAuto, d.DurationMs, d.SourceKind
             FROM Detections d INNER JOIN Tracks t ON t.Id = d.TrackId
             {(trackId != null ? "WHERE d.TrackId = @track" : "")}
             ORDER BY d.DetectedAt DESC {(limit.HasValue ? "LIMIT @limit" : "")}";
@@ -262,6 +274,7 @@ public class SqliteTrackRepository : ITrackRepository
                 AudioDevice = reader.GetString(o + 4),
                 IsAuto = reader.GetInt32(o + 5) == 1,
                 DurationMs = reader.GetInt64(o + 6),
+                SourceKind = reader.GetString(o + 7),
                 Track = track
             });
         }

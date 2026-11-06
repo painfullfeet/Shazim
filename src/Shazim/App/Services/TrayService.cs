@@ -39,6 +39,7 @@ public sealed class TrayService : IDisposable
         _menu.Items.Add(Item(Loc.T("tray.identify"), "IconWaveform", identify, accent: true));
         _menu.Items.Add(Item(Loc.T("mainwin.auto_shazim"), "IconMusicNotes", toggleAuto, trailing: _autoSwitch));
         _menu.Items.Add(Item(Loc.T("mainwin.mini_lecteur"), "IconPictureInPicture", openMini));
+        _menu.Items.Add(Item(Loc.T("mainwin.statistiques"), "IconChartBar", () => { open(); App.Current.NavigateMain("stats"); }));
         _menu.Items.Add(new Separator { Style = Res<Style>("MenuSeparator") });
         _menu.Items.Add(Item(Loc.T("tray.quit"), "IconPower", exit));
 
@@ -135,11 +136,16 @@ public sealed class TrayService : IDisposable
         _icon.Text = text.Length > 63 ? text[..63] : text; // Windows limit
     }
 
-    public void Notify(string title, string message, Action? onClick = null)
+    /// <param name="sound">False: Windows shows it without its sound (NIIF_NOSOUND).</param>
+    public void Notify(string title, string message, Action? onClick = null, bool sound = true)
     {
         _balloonClick = onClick;
+        if (!sound && SilentBalloon.Show(_icon, title, message)) return;
         _icon.ShowBalloonTip(5000, title, message, Forms.ToolTipIcon.None);
     }
+
+    /// <summary>For tests: the silent notification can find the icon's window.</summary>
+    internal bool CanNotifySilently => SilentBalloon.Identity(_icon) != null;
 
     public void Dispose()
     {

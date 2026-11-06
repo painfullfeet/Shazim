@@ -53,6 +53,8 @@
                                      GroupName="nav" IsChecked="True" Checked="Nav_Checked" AutomationProperties.Name="{infra:T mainwin.ecouter}"/>
                         <RadioButton x:Name="NavLibrary" Style="{StaticResource NavItem}" Tag="{StaticResource IconBooks}" Content="{infra:T mainwin.bibliotheque}"
                                      GroupName="nav" Checked="Nav_Checked" AutomationProperties.Name="{infra:T mainwin.bibliotheque}"/>
+                        <RadioButton x:Name="NavStats" Style="{StaticResource NavItem}" Tag="{StaticResource IconChartBar}" Content="{infra:T mainwin.statistiques}"
+                                     GroupName="nav" Checked="Nav_Checked" AutomationProperties.Name="{infra:T mainwin.statistiques}"/>
                         <RadioButton x:Name="NavSettings" Style="{StaticResource NavItem}" Tag="{StaticResource IconGearSix}" Content="{infra:T mainwin.reglages}"
                                      GroupName="nav" Checked="Nav_Checked" AutomationProperties.Name="{infra:T mainwin.reglages}"/>
                     </StackPanel>

@@ -25,6 +25,9 @@ public sealed class IdentifyOutcome
     /// <summary>Auto mode found a track already detected within the duplicate window (not recorded again).</summary>
     public bool IsDuplicate { get; init; }
     public TimeSpan Duration { get; init; }
+
+    /// <summary>Where the song was when it was heard (for synced lyrics), if Shazam said.</summary>
+    public Lyrics.PlaybackAnchor? Anchor { get; init; }
 }
 
 /// <param name="DeviceIds">One or more sources listened to at the same time (PC output and/or microphone).</param>
@@ -70,12 +73,18 @@ public class IdentificationService
         var started = DateTime.UtcNow;
 
         var sessions = new List<ICaptureSession>();
+        var deviceOf = new Dictionary<ICaptureSession, string>();
         string? openError = null;
         try
         {
             foreach (var id in request.DeviceIds.Distinct())
             {
-                try { sessions.Add(await Task.Run(() => _capture.StartSession(id), ct).ConfigureAwait(false)); }
+                try
+                {
+                    var session = await Task.Run(() => _capture.StartSession(id), ct).ConfigureAwait(false);
+                    sessions.Add(session);
+                    deviceOf[session] = id;
+                }
                 catch (AudioCaptureException ex) { openError = ex.Message; _logger.LogWarning("Source {Id} unavailable: {Message}", id, ex.Message); }
             }
         }
@@ -104,7 +113,7 @@ public class IdentificationService
 
                 // Every source that hears something is searched in parallel.
                 var audible = sessions
-                    .Select(s => (Session: s, Clip: s.Snapshot(SignatureWindow)))
+                    .Select(s => (Session: s, Clip: s.Snapshot(SignatureWindow), At: DateTime.UtcNow))
                     .Where(x => x.Clip.Duration >= TimeSpan.FromSeconds(1.5) && AudioDsp.Rms(x.Clip.Samples) >= SilenceRms)
                     .ToList();
                 if (audible.Count == 0)
@@ -128,12 +137,18 @@ public class IdentificationService
                     }
                     _logger.LogInformation("{Source}: {Status} in {Ms} ms {Error}", x.Session.DeviceName, r.Status.ToString(),
                         watch.ElapsedMilliseconds, r.Error ?? "");
-                    return (x.Session, Result: r);
+                    return (x.Session, Result: r, SampleStart: x.At - x.Clip.Duration);
                 })).ConfigureAwait(false);
 
                 var match = results.FirstOrDefault(r => r.Result.IsMatch);
                 if (match.Result != null)
-                    return await SaveAsync(match.Result, request, match.Session.DeviceName, DateTime.UtcNow - started).ConfigureAwait(false);
+                {
+                    var anchor = match.Result.MatchOffsetSeconds is { } offset
+                        ? new Lyrics.PlaybackAnchor(match.Result.Track!.Id, offset, match.SampleStart)
+                        : (Lyrics.PlaybackAnchor?)null;
+                    var kind = SourceKinds.FromDeviceId(deviceOf.GetValueOrDefault(match.Session));
+                    return await SaveAsync(match.Result, request, match.Session.DeviceName, kind, DateTime.UtcNow - started, anchor).ConfigureAwait(false);
+                }
 
                 lastResult = results.Any(r => r.Result.Status == RecognitionStatus.NoMatch)
                     ? results.First(r => r.Result.Status == RecognitionStatus.NoMatch).Result
@@ -186,7 +201,8 @@ public class IdentificationService
         return list;
     }
 
-    private async Task<IdentifyOutcome> SaveAsync(RecognitionResult result, IdentifyRequest request, string sourceName, TimeSpan duration)
+    private async Task<IdentifyOutcome> SaveAsync(RecognitionResult result, IdentifyRequest request, string sourceName, string sourceKind,
+        TimeSpan duration, Lyrics.PlaybackAnchor? anchor)
     {
         var track = result.Track!;
         _dedup.SetWindow(request.DuplicateWindowMinutes);
@@ -195,7 +211,7 @@ public class IdentificationService
         if (!(request.IsAuto && duplicate))
         {
             await _library.AddTrackAsync(track).ConfigureAwait(false);
-            await _library.RecordDetectionAsync(track.Id, result.Confidence, sourceName, request.IsAuto).ConfigureAwait(false);
+            await _library.RecordDetectionAsync(track.Id, result.Confidence, sourceName, request.IsAuto, sourceKind).ConfigureAwait(false);
         }
 
         _logger.LogInformation("Identified {Artist} - {Title} on {Source} in {Seconds:F1} s (duplicate: {Dup})",
@@ -209,7 +225,8 @@ public class IdentificationService
             IsAuto = request.IsAuto,
             SourceName = sourceName,
             IsDuplicate = request.IsAuto && duplicate,
-            Duration = duration
+            Duration = duration,
+            Anchor = anchor
         };
 
         if (!outcome.IsDuplicate)

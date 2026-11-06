@@ -71,6 +71,46 @@ public static class DevSnapshot
                     "## Nouveautés\n- Mises à jour depuis l'app\n- Nouveaux thèmes et couleur perso\n- Paroles synchronisées", "",
                     new[] { new Core.Updates.ReleaseAsset("Shazim-Setup-9.9.0.exe", "https://example.invalid/x.exe", 1) }));
                 break;
+            case "updatetest":
+            {
+                // Real check + download + checksum against GitHub, without installing.
+                var updates = (Services.UpdateService)App.Current.Services.GetService(typeof(Services.UpdateService))!;
+                var report = Path.Combine(Environment.GetEnvironmentVariable("SHAZIM_SNAPSHOT_DIR")!, "updatetest.txt");
+                try
+                {
+                    var r = await updates.CheckAsync(manual: true);
+                    var line = $"check: {r.Status} {r.Release?.DisplayVersion} {r.Message}";
+                    if (r.Release != null && arg == "download")
+                    {
+                        var file = await updates.DownloadAsync(r.Release, null);
+                        line += $"\ndownloaded and verified: {Path.GetFileName(file)} {new FileInfo(file).Length} bytes";
+                    }
+                    File.WriteAllText(report, line);
+                }
+                catch (Exception ex) { File.WriteAllText(report, "error: " + ex.Message); }
+                break;
+            }
+            case "toast":
+            case "widget":
+            case "playing":
+            {
+                var lib = (Core.Services.LibraryService)App.Current.Services.GetService(typeof(Core.Services.LibraryService))!;
+                var all = await lib.SearchAsync(null);
+                if (all.Count == 0) break;
+                var t = all[int.TryParse(arg, out int k) && k < all.Count ? k : 0];
+                if (parts[0] == "toast")
+                {
+                    new ToastWindow(lib, t, "Auto Shazim · " + DateTime.Now.ToString("t"), () => { }).Show();
+                    break;
+                }
+                // Made-up lyrics (not the song's), 4 s per line, 25 s into the song.
+                var lrc = string.Join("\n", Enumerable.Range(0, 24).Select(n => $"[{n * 4 / 60:00}:{n * 4 % 60:00}.00]Ligne de démonstration numéro {n + 1}"));
+                var now = (Services.NowPlayingService)App.Current.Services.GetService(typeof(Services.NowPlayingService))!;
+                now.Simulate(t, new Core.Lyrics.PlaybackAnchor(t.Id, 25, DateTime.UtcNow), Core.Lyrics.TrackLyrics.FromLrc(lrc, null, false, 200));
+                if (parts[0] == "widget") App.Current.ShowMiniWindow();
+                else main?.ShowTrack(t);
+                break;
+            }
             case "scroll":
                 if (main != null && FindScroller(main) is { } sv)
                 {

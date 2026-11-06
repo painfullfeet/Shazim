@@ -193,7 +193,17 @@ public class ShazamRecognitionService : IMusicRecognitionService
         }
         LinkBuilder.Add(track, "YouTube", LinkBuilder.SearchUrl("YouTube", query));
 
-        return RecognitionResult.Matched(Name, track, 1f);
+        // Position of the sample in the song: lets the lyrics follow the music.
+        double? offset = null;
+        var first = matches[0];
+        if (first.ValueKind == JsonValueKind.Object && first.TryGetProperty("offset", out var off) &&
+            off.ValueKind == JsonValueKind.Number && off.TryGetDouble(out var seconds) && seconds >= 0 && seconds < 3600)
+            offset = seconds;
+
+        return new RecognitionResult
+        {
+            Status = RecognitionStatus.Match, Provider = Name, Track = track, Confidence = 1f, MatchOffsetSeconds = offset
+        };
     }
 
     private static IEnumerable<string> EnumerateActionUris(JsonElement element)

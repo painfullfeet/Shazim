@@ -6,6 +6,7 @@
     <RootNamespace>Shazim.Tests</RootNamespace>
     <IsTestProject>true</IsTestProject>
     <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,5 +26,7 @@
   <ItemGroup>
     <Using Include="System.Net.Http" />
     <Using Include="System.IO" />
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
   </ItemGroup>
 </Project>

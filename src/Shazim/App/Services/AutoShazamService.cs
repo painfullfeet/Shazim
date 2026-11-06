@@ -43,6 +43,9 @@ public sealed class AutoShazamService : BackgroundService
     /// <summary>Raised (worker thread) when a new, non-duplicate track is detected.</summary>
     public event EventHandler<IdentifyOutcome>? TrackDetected;
 
+    /// <summary>Raised (worker thread) on every match, duplicates included (keeps the lyrics in time).</summary>
+    public event EventHandler<IdentifyOutcome>? Matched;
+
     public void SetEnabled(bool enabled)
     {
         if (_enabled == enabled) return;
@@ -102,6 +105,7 @@ public sealed class AutoShazamService : BackgroundService
                         _consecutiveErrors = 0;
                         var track = outcome.Track!;
                         LastTrack = track;
+                        Matched?.Invoke(this, outcome);
                         if (!outcome.IsDuplicate) TrackDetected?.Invoke(this, outcome);
                         SetStatus(AutoShazamState.Waiting, () => Loc.F("auto.last", track.DisplayArtist, track.DisplayTitle));
                         break;

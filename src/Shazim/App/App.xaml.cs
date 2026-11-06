@@ -109,12 +109,22 @@ public partial class App : Application
         ThemeService.Apply(settings.GetSettings().General);
         var auto = Services.GetRequiredService<AutoShazamService>();
         var controller = Services.GetRequiredService<IdentifyController>();
+        Services.GetRequiredService<NowPlayingService>(); // follows every match from now on
 
         _logger.LogDebug("Creating main window");
         _main = new MainWindow(Services);
         _logger.LogDebug("Main window created");
 
-        CreateTray();
+        // Developer measurement: process start → first frame of the main window, then quit.
+        var probe = Environment.GetEnvironmentVariable("SHAZIM_STARTUP_PROBE");
+        if (!string.IsNullOrWhiteSpace(probe))
+            _main.ContentRendered += (_, _) =>
+            {
+                var ms = (DateTime.Now - System.Diagnostics.Process.GetCurrentProcess().StartTime).TotalMilliseconds;
+                File.AppendAllText(probe, $"{ms:F0}\n");
+                Dispatcher.BeginInvoke(ExitApp, DispatcherPriority.ApplicationIdle);
+            };
+
         // The tray menu is built from code: rebuild it in the new colours.
         bool trayQueued = false;
         ThemeService.Changed += (_, _) =>
@@ -137,14 +147,21 @@ public partial class App : Application
         });
         controller.Completed += (_, outcome) => NotifyTrack(outcome, isAuto: false);
 
-        _hotkeys = new HotkeyService();
-        ApplyHotkeys();
-        settings.Saved += (_, _) => Dispatcher.BeginInvoke(ApplyHotkeys);
+        // Lighter start: the notification icon (WinForms), the hotkeys and the startup entry
+        // are set up once the first window is on screen.
+        Dispatcher.BeginInvoke(() =>
+        {
+            if (_exiting) return;
+            CreateTray();
+            _hotkeys = new HotkeyService();
+            ApplyHotkeys();
+            settings.Saved += (_, _) => Dispatcher.BeginInvoke(ApplyHotkeys);
 
-        // Keep the Windows startup entry in sync with the setting.
-        if (!Core.AppPaths.IsCustomDataDirectory)
-        try { StartupService.Apply(settings.GetSettings().General.StartWithWindows); }
-        catch (Exception ex) { _logger.LogWarning("Startup entry not updated: {Message}", ex.Message); }
+            // Keep the Windows startup entry in sync with the setting.
+            if (!Core.AppPaths.IsCustomDataDirectory)
+                try { StartupService.Apply(settings.GetSettings().General.StartWithWindows); }
+                catch (Exception ex) { _logger.LogWarning("Startup entry not updated: {Message}", ex.Message); }
+        }, DispatcherPriority.ApplicationIdle);
 
         bool launchedAtLogin = e.Args.Contains(StartupService.MinimizedArg, StringComparer.OrdinalIgnoreCase);
         if (launchedAtLogin && settings.GetSettings().General.StartMinimized)
@@ -223,6 +240,8 @@ public partial class App : Application
                 services.AddSingleton<PreviewPlayer>();
                 services.AddSingleton<MusicVisualizer>();
                 services.AddSingleton<UpdateService>();
+                services.AddSingleton<Core.Lyrics.LyricsService>();
+                services.AddSingleton<NowPlayingService>();
                 services.AddSingleton<AutoShazamService>();
                 services.AddHostedService(sp => sp.GetRequiredService<AutoShazamService>());
             })
@@ -250,11 +269,34 @@ public partial class App : Application
         if (!n.Enabled || (n.AutoOnly && !isAuto)) return;
         if (outcome.Kind != Core.Recognition.IdentifyOutcomeKind.Match || outcome.Track == null) return;
 
-        // Manual results are already on screen when the window is in front.
-        if (!isAuto && _main is { IsVisible: true, IsActive: true }) return;
+        // Results are already on screen when the window is in front.
+        if (_main is { IsVisible: true, IsActive: true, WindowState: not WindowState.Minimized }) return;
 
-        _tray?.Notify(outcome.Track.DisplayTitle, outcome.Track.DisplayArtist + (isAuto ? "  ·  " + Loc.T("mainwin.auto_shazim") : ""), ShowMainWindow);
+        var track = outcome.Track;
+        void Open() { ShowMainWindow(); ShowTrackInMain(track); }
+
+        if (n.Style == NotificationStyle.Popup)
+        {
+            var badge = (isAuto ? Loc.T("mainwin.auto_shazim") : Loc.T("toast.found")) + " · " + DateTime.Now.ToString("t", Loc.Instance.Culture);
+            if (_toast is { IsLoaded: true })
+                _toast.Show(track, badge);
+            else
+            {
+                _toast = new ToastWindow(Services.GetRequiredService<LibraryService>(), track, badge, Open);
+                _toast.Closed += (s, _) => { if (ReferenceEquals(_toast, s)) _toast = null; };
+                _toast.Show();
+            }
+            return;
+        }
+        _tray?.Notify(track.DisplayTitle, track.DisplayArtist + (isAuto ? "  ·  " + Loc.T("mainwin.auto_shazim") : ""), Open, n.Sound);
     }
+
+    private ToastWindow? _toast;
+
+    /// <summary>Opens the track sheet in the main window.</summary>
+    public void ShowTrackInMain(Core.Models.Track track) => _main?.ShowTrack(track);
+
+    public void NavigateMain(string page) => _main?.Navigate(page);
 
     public void ShowMainWindow()
     {
@@ -292,6 +334,7 @@ public partial class App : Application
         if (_exiting) return;
         _exiting = true;
         _showEvent?.Set();
+        _toast?.Close();
         _mini?.Close();
         _main?.Close();
         Shutdown();
