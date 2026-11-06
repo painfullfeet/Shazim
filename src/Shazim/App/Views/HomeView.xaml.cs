@@ -278,12 +278,14 @@ public partial class HomeView : UserControl, IRefreshable
             _bass += (bass - _bass) * (bass > _bass ? 0.55 : 0.10);
             for (int i = 0; i < _bands.Length; i++)
                 _bands[i] += (_bandsRaw[i] - _bands[i]) * (_bandsRaw[i] > _bands[i] ? 0.5 : 0.12);
-            kick = UpdateBeat(_bass);
+            kick = UpdateBeat();
             DrawAura(_effect == ButtonEffect.Aura);
         }
 
         // The logo swells on every beat (tempo) and a little with the overall bass.
-        CoreScale.ScaleX = CoreScale.ScaleY = 1 + 0.06 * _smoothLevel + 0.11 * kick + 0.03 * _bass;
+        // "Pulsation" has no aura, so its kick is stronger and each beat sends a ring outwards.
+        double kickAmount = _effect == ButtonEffect.Pulse ? 0.17 : 0.11;
+        CoreScale.ScaleX = CoreScale.ScaleY = 1 + 0.06 * _smoothLevel + kickAmount * kick + 0.03 * _bass;
     }
 
     // ===== Aura (spectre lissé) et pulsation au rythme =====
@@ -291,28 +293,42 @@ public partial class HomeView : UserControl, IRefreshable
     private const int AuraPoints = 96;
     private readonly double[] _ring = new double[AuraPoints];
     private readonly double[] _tmp = new double[AuraPoints];
-    private double _bassAverage;
     private double _beat;
-    private DateTime _lastBeat = DateTime.MinValue;
+    private int _beatsSeen;
+    private bool _ringToggle;
 
     /// <summary>
-    /// Beat detector: a bass hit clearly above its recent average triggers a pulse that
-    /// decays over ~150 ms. The logo therefore swells on each beat, following the tempo.
+    /// The visualizer finds beats at its own analysis rate (see BeatDetector); every new one
+    /// starts a pulse that decays over ~150 ms, so the logo swells on the tempo.
     /// </summary>
-    private double UpdateBeat(double bass)
+    private double UpdateBeat()
     {
-        _bassAverage += (bass - _bassAverage) * 0.03;
-        var now = DateTime.UtcNow;
-        if (bass > 0.25 && bass > _bassAverage * 1.18 + 0.04 && now - _lastBeat > TimeSpan.FromMilliseconds(230))
+        int count = _visualizer.BeatCount;
+        if (count != _beatsSeen)
         {
-            _beat = 1;
-            _lastBeat = now;
+            bool fresh = count > _beatsSeen && _visualizer.HasSignal;
+            _beatsSeen = count;
+            if (fresh)
+            {
+                _beat = 1;
+                if (_effect == ButtonEffect.Pulse) FireBeatRing();
+                return _beat;
+            }
         }
-        else
-        {
-            _beat *= 0.86;
-        }
+        _beat *= 0.86;
         return _beat;
+    }
+
+    /// <summary>A ring leaves the button on the beat (two rings alternate for fast tempos).</summary>
+    private void FireBeatRing()
+    {
+        _ringToggle = !_ringToggle;
+        var (ring, scale) = _ringToggle ? (BeatRing1, BeatRing1Scale) : (BeatRing2, BeatRing2Scale);
+        var ease = new QuadraticEase { EasingMode = EasingMode.EaseOut };
+        var grow = new DoubleAnimation(1.0, 1.42, TimeSpan.FromMilliseconds(560)) { EasingFunction = ease };
+        scale.BeginAnimation(ScaleTransform.ScaleXProperty, grow);
+        scale.BeginAnimation(ScaleTransform.ScaleYProperty, grow);
+        ring.BeginAnimation(OpacityProperty, new DoubleAnimation(0.9, 0, TimeSpan.FromMilliseconds(560)) { EasingFunction = ease });
     }
 
     private void DrawAura(bool show)

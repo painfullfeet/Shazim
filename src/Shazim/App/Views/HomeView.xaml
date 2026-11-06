@@ -38,6 +38,16 @@
                                 <Ellipse.RenderTransform><ScaleTransform/></Ellipse.RenderTransform>
                             </Ellipse>
 
+                            <!-- Pulsation : un anneau part du bouton à chaque temps -->
+                            <Ellipse x:Name="BeatRing1" Width="196" Height="196" Stroke="{DynamicResource SignalBrush}" StrokeThickness="5"
+                                     Opacity="0" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
+                                <Ellipse.RenderTransform><ScaleTransform x:Name="BeatRing1Scale"/></Ellipse.RenderTransform>
+                            </Ellipse>
+                            <Ellipse x:Name="BeatRing2" Width="196" Height="196" Stroke="{DynamicResource SignalBrush}" StrokeThickness="5"
+                                     Opacity="0" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
+                                <Ellipse.RenderTransform><ScaleTransform x:Name="BeatRing2Scale"/></Ellipse.RenderTransform>
+                            </Ellipse>
+
                             <!-- Aura qui épouse le spectre de la musique (inspirée de Specterr) : trois couches lissées -->
                             <Grid x:Name="Aura" Width="300" Height="300" IsHitTestVisible="False" ClipToBounds="False">
                                 <Path x:Name="AuraOuter" Stretch="None" Fill="{DynamicResource SignalBrush}" Opacity="0.28">

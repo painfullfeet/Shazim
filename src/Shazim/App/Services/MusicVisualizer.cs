@@ -55,6 +55,7 @@ public sealed class MusicVisualizer : IDisposable
                     ? enumerator.GetDevice(outputDeviceId[4..])
                     : enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
                 var capture = new WasapiLoopbackCapture(device);
+                _beats.Reset();
                 _channels = Math.Max(1, capture.WaveFormat.Channels);
                 _sampleRate = capture.WaveFormat.SampleRate;
                 _edges = BuildEdges(_sampleRate);
@@ -156,12 +157,23 @@ public sealed class MusicVisualizer : IDisposable
         for (int k = (int)(40 / hz); k <= (int)(150 / hz); k++)
             bassPeak = Math.Max(bassPeak, Math.Sqrt(_re[k] * _re[k] + _im[k] * _im[k]));
 
+        float bass = Normalize(bassPeak);
+        // Beats are found here, at the analysis rate (~94 per second), not once per screen frame:
+        // a short kick is never missed between two frames.
+        _beats.Feed(bass, (double)(FftSize / 4) / _sampleRate);
         lock (_lock)
         {
             Array.Copy(bands, _bands, BandCount);
-            _bass = Normalize(bassPeak);
+            _bass = bass;
+            _beatCount = _beats.Count;
         }
     }
+
+    private readonly BeatDetector _beats = new();
+    private int _beatCount;
+
+    /// <summary>Increases by one on every beat of the music playing on the PC.</summary>
+    public int BeatCount { get { lock (_lock) return _beatCount; } }
 
     /// <summary>Magnitude to 0..1 on a 54 dB scale.</summary>
     private static float Normalize(double magnitude)
