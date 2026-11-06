@@ -82,7 +82,10 @@ public sealed class PreviewPlayer : ObservableObject, IDisposable
         TrackId = track.Id;
         IsPlaying = true;
         IsLoading = true;
-        var url = track.PreviewUrl;
+        // Only web previews: a stored path or another scheme is never opened.
+        var url = Core.Security.LinkPolicy.Sanitize(track.PreviewUrl) is { } safe && safe.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+            ? track.PreviewUrl.Trim() : null;
+        if (url == null) { IsLoading = false; IsPlaying = false; TrackId = null; ErrorTrackId = track.Id; return; }
         var dispatcher = Application.Current.Dispatcher;
 
         Task.Run(() =>

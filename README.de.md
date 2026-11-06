@@ -11,7 +11,7 @@ Kostenlose Open-Source-App für Windows, die jeden Song erkennt: YouTube-Video, 
 [![Downloads](https://img.shields.io/github/downloads/painfullfeet/Shazim/total?style=for-the-badge&color=2b2540)](https://github.com/painfullfeet/Shazim/releases)
 
 ![Windows 10/11](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows&logoColor=white)
-![.NET 8](https://img.shields.io/badge/.NET-8-512BD4?logo=dotnet&logoColor=white)
+![.NET 10](https://img.shields.io/badge/.NET 10-512BD4?logo=dotnet&logoColor=white)
 [![Lizenz GPL-3.0](https://img.shields.io/badge/Lizenz-GPL--3.0-blue)](LICENSE)
 ![Sprachen](https://img.shields.io/badge/Sprachen-FR%20%7C%20EN%20%7C%20ES%20%7C%20DE-ff4d6d)
 
@@ -106,7 +106,7 @@ Auch wenn Shazim minimiert ist: **`Strg+Umschalt+S`** in jeder App.
 
 ## Datenschutz
 
-Audio wird **nur im Speicher** gehalten und danach gelöscht: Nichts wird auf die Festplatte geschrieben. Gesendet wird nur ein auf deinem PC berechneter **spektraler Fingerabdruck**, nie der Ton. Kein Konto, keine Werbung, keine Statistiken. Deine Daten liegen in `%LOCALAPPDATA%\Shazim`. Songtexte werden bei [LRCLIB](https://lrclib.net) nur mit Künstler, Titel, Album und Länge abgefragt; die Update-Prüfung fragt GitHub, ohne Persönliches zu senden. Beides lässt sich abschalten.
+Audio wird **nur im Speicher** gehalten und danach gelöscht: Nichts wird auf die Festplatte geschrieben. Gesendet wird nur ein auf deinem PC berechneter **spektraler Fingerabdruck**, nie der Ton. Kein Konto, keine Werbung, keine Statistiken. Deine Daten liegen in `%LOCALAPPDATA%\Shazim`. Songtexte werden bei [LRCLIB](https://lrclib.net) nur mit Künstler, Titel, Album und Länge abgefragt; die Update-Prüfung fragt GitHub, ohne Persönliches zu senden. Beides lässt sich abschalten. **Keine Standortdaten**: Es wird immer eine feste, allgemeine Position gesendet, nie deine. **Updates sind signiert** (siehe [SECURITY.md](SECURITY.md)).
 
 ## Häufige Fragen
 
@@ -117,7 +117,7 @@ Audio wird **nur im Speicher** gehalten und danach gelöscht: Nichts wird auf di
 
 ## Aus dem Quellcode bauen
 
-Voraussetzungen: Windows 10/11 und das [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0).
+Voraussetzungen: Windows 10/11 und das [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0).
 
 ```powershell
 git clone https://github.com/painfullfeet/Shazim.git

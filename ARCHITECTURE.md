@@ -2,7 +2,7 @@
 
 ```
 src/Shazim/
-  Core/    logique métier, sans interface (net8.0-windows, NAudio)
+  Core/    logique métier, sans interface (net10.0-windows, NAudio)
   Data/    stockage SQLite
   App/     application WPF (exécutable Shazim.exe)
   Tests/   tests xUnit

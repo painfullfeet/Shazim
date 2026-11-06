@@ -24,6 +24,7 @@ public sealed class UpdateService
     private readonly IAppHttpClientFactory _http;
     private readonly SettingsService _settings;
     private readonly ILogger<UpdateService> _logger;
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> _verified = new(StringComparer.OrdinalIgnoreCase);
 
     public UpdateService(IAppHttpClientFactory http, SettingsService settings, ILogger<UpdateService> logger)
     {
@@ -31,6 +32,9 @@ public sealed class UpdateService
         _settings = settings;
         _logger = logger;
     }
+
+    /// <summary>Key that must have signed SHA256SUMS.txt (the release key; replaced only by tests).</summary>
+    public string TrustedPublicKey { get; set; } = UpdateTrust.PublicKey;
 
     public static Version CurrentVersion
     {
@@ -117,27 +121,30 @@ public sealed class UpdateService
     {
         var setup = release.SetupAsset ?? throw new UpdateException(Loc.T("update.no_installer"));
         var sumsAsset = release.ChecksumAsset ?? throw new UpdateException(Loc.T("update.no_checksum"));
+        var sigAsset = release.SignatureAsset ?? throw new UpdateException(Loc.T("update.bad_signature"));
         var client = _http.CreateClient();
 
         try
         {
-            // 1. The expected checksum.
-            string sums;
-            using (var sumsRequest = Get(sumsAsset.DownloadUrl))
-            using (var timeout = Timeout(ct, 20))
-            using (var r = await client.SendAsync(sumsRequest, timeout.Token).ConfigureAwait(false))
+            // 1. The expected checksum, signed with the release key (kept off GitHub).
+            var sumsBytes = await GetBytesAsync(client, sumsAsset.DownloadUrl, 64 * 1024, ct).ConfigureAwait(false);
+            var signature = System.Text.Encoding.ASCII.GetString(await GetBytesAsync(client, sigAsset.DownloadUrl, 4 * 1024, ct).ConfigureAwait(false));
+            if (!UpdateTrust.VerifySignature(sumsBytes, signature, TrustedPublicKey))
             {
-                r.EnsureSuccessStatusCode();
-                sums = await r.Content.ReadAsStringAsync(timeout.Token).ConfigureAwait(false);
+                _logger.LogWarning("Update rejected: bad signature");
+                throw new UpdateException(Loc.T("update.bad_signature"));
             }
+            var sums = System.Text.Encoding.UTF8.GetString(sumsBytes);
             var expected = UpdateParser.FindChecksum(sums, setup.Name) ?? throw new UpdateException(Loc.T("update.no_checksum"));
 
             // 2. The installer, with progress.
-            var dir = Path.Combine(Path.GetTempPath(), "Shazim-Update");
+            // A fresh, unpredictable folder: nothing can be planted there in advance.
+            var dir = Path.Combine(Path.GetTempPath(), "Shazim-Update-" + Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(8)));
             Directory.CreateDirectory(dir);
             var target = Path.Combine(dir, Path.GetFileName(setup.Name));
             var partial = target + ".part";
 
+            if (setup.Size > 1L << 30) throw new UpdateException(Loc.T("update.download_failed"));
             using (var request = Get(setup.DownloadUrl))
             using (var timeout = Timeout(ct, 600))
             using (var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, timeout.Token).ConfigureAwait(false))
@@ -153,6 +160,7 @@ public sealed class UpdateService
                 {
                     await output.WriteAsync(buffer.AsMemory(0, read), timeout.Token).ConfigureAwait(false);
                     done += read;
+                    if (done > (1L << 30)) throw new IOException("installer too large");
                     if (total > 0) progress?.Report(Math.Min(1, (double)done / total));
                 }
             }
@@ -167,6 +175,7 @@ public sealed class UpdateService
             }
             TryDelete(target);
             File.Move(partial, target);
+            _verified[Path.GetFullPath(target)] = expected;
             progress?.Report(1);
             return target;
         }
@@ -186,15 +195,40 @@ public sealed class UpdateService
         }
     }
 
-    /// <summary>Starts the verified installer quietly; it replaces Shazim and starts it again.</summary>
+    /// <summary>
+    /// Starts the verified installer quietly; it replaces Shazim and starts it again.
+    /// The file is hashed again while held open without write/delete sharing, so it cannot be
+    /// swapped between the check and the start.
+    /// </summary>
     public void Install(string installerPath)
     {
+        if (!_verified.TryGetValue(Path.GetFullPath(installerPath), out var expectedSha256))
+            throw new UpdateException(Loc.T("update.bad_checksum"));
+        using var guard = new FileStream(installerPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        using (var sha = System.Security.Cryptography.SHA256.Create())
+        {
+            var actual = Convert.ToHexString(sha.ComputeHash(guard)).ToLowerInvariant();
+            if (!string.Equals(actual, expectedSha256, StringComparison.OrdinalIgnoreCase))
+                throw new UpdateException(Loc.T("update.bad_checksum"));
+        }
         _logger.LogInformation("Starting the installer for the update");
         Process.Start(new ProcessStartInfo(installerPath, "--setup --quiet")
         {
             UseShellExecute = false,
             WorkingDirectory = Path.GetDirectoryName(installerPath)!
         });
+    }
+
+    private static async Task<byte[]> GetBytesAsync(HttpClient client, string url, int maxBytes, CancellationToken ct)
+    {
+        using var request = Get(url);
+        using var timeout = Timeout(ct, 20);
+        using var r = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, timeout.Token).ConfigureAwait(false);
+        r.EnsureSuccessStatusCode();
+        if (r.Content.Headers.ContentLength > maxBytes) throw new IOException("file too large");
+        var bytes = await r.Content.ReadAsByteArrayAsync(timeout.Token).ConfigureAwait(false);
+        if (bytes.Length > maxBytes) throw new IOException("file too large");
+        return bytes;
     }
 
     private static HttpRequestMessage Get(string url)

@@ -300,6 +300,7 @@
   "update.auto_check_hint": "At start-up, at most once a day, on GitHub.",
   "update.available": "Update available ({0})",
   "update.bad_checksum": "The downloaded file does not match the published SHA-256: it was deleted.",
+  "update.bad_signature": "The update's signature is invalid: it was not installed.",
   "update.cancel": "Cancel",
   "update.check_now": "Check for updates",
   "update.checking": "Checking…",

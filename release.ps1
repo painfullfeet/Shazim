@@ -35,3 +35,20 @@ $hash = (Get-FileHash $setup -Algorithm SHA256).Hash.ToLowerInvariant()
 $mb = [math]::Round((Get-Item $setup).Length / 1MB, 1)
 Write-Host "OK  $setup  ($mb MB)" -ForegroundColor Green
 Write-Host "SHA-256  $hash"
+
+# Sign the checksums with the release key. The app refuses updates without a valid signature.
+# The private key lives outside the repository (back it up!); override with $env:SHAZIM_SIGNING_KEY.
+$key = if ($env:SHAZIM_SIGNING_KEY) { $env:SHAZIM_SIGNING_KEY } else { Join-Path $env:APPDATA 'Shazim-Release\update-signing-key.pem' }
+$sums = Join-Path $dist 'SHA256SUMS.txt'
+Remove-Item "$sums.sig" -ErrorAction SilentlyContinue
+if (Test-Path $key) {
+    $signer = Join-Path $root 'tools\ReleaseSigner\ReleaseSigner.csproj'
+    & $dotnet run --project $signer -c Release -- sign $key $sums | Out-Null
+    if ($LASTEXITCODE -ne 0) { Write-Host "Signing failed." -ForegroundColor Red; exit 1 }
+    Write-Host "Signed   SHA256SUMS.txt.sig" -ForegroundColor Green
+} elseif ($env:CI) {
+    Write-Host "No signing key on CI: build only, not publishable." -ForegroundColor Yellow
+} else {
+    Write-Host "Signing key not found ($key): this build cannot be published as an update." -ForegroundColor Red
+    exit 1
+}

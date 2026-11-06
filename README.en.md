@@ -11,7 +11,7 @@ A free, open-source Windows app to identify any song: YouTube video, Twitch stre
 [![Downloads](https://img.shields.io/github/downloads/painfullfeet/Shazim/total?style=for-the-badge&color=2b2540)](https://github.com/painfullfeet/Shazim/releases)
 
 ![Windows 10/11](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows&logoColor=white)
-![.NET 8](https://img.shields.io/badge/.NET-8-512BD4?logo=dotnet&logoColor=white)
+![.NET 10](https://img.shields.io/badge/.NET 10-512BD4?logo=dotnet&logoColor=white)
 ![WPF](https://img.shields.io/badge/UI-WPF-5c2d91)
 [![License GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE)
 ![Languages](https://img.shields.io/badge/languages-FR%20%7C%20EN%20%7C%20ES%20%7C%20DE-ff4d6d)
@@ -172,6 +172,9 @@ Turn on the **Auto Shazim** switch in the sidebar: Shazim listens in a loop and 
 - Audio is kept **in memory** while listening (12 s at most), then erased: **nothing is written to disk**.
 - Only a **spectral fingerprint** computed on your PC is sent to the recognition service, never the sound itself.
 - No account, no ads, no usage statistics.
+- **No geolocation**: the recognition service requires a position; Shazim always sends the same fixed, generic one (centre of France), never yours.
+- **Signed updates**: an update is installed only if its signature (key kept off GitHub) and SHA-256 are valid. See [SECURITY.md](SECURITY.md).
+- **Filtered links**: only web and Spotify/Deezer links received from online services can be opened.
 - Your data stays on your PC, in `%LOCALAPPDATA%\Shazim`: library (`shazim.db`), settings, cached artwork, log.
 - Lyrics are requested from [LRCLIB](https://lrclib.net) with only the artist, title, album and length of the track, then cached. The update check asks GitHub without sending anything personal. Both can be turned off in the settings.
 
@@ -221,7 +224,7 @@ No, Shazim is a Windows app (10 and 11, 64-bit). On Linux, [SongRec](https://git
 
 ## Build from source
 
-Requirements: Windows 10/11 and the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0).
+Requirements: Windows 10/11 and the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0).
 
 ```powershell
 git clone https://github.com/painfullfeet/Shazim.git

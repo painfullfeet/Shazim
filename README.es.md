@@ -11,7 +11,7 @@ Aplicación gratuita y de código abierto para Windows que identifica cualquier 
 [![Descargas](https://img.shields.io/github/downloads/painfullfeet/Shazim/total?style=for-the-badge&color=2b2540&label=Descargas)](https://github.com/painfullfeet/Shazim/releases)
 
 ![Windows 10/11](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows&logoColor=white)
-![.NET 8](https://img.shields.io/badge/.NET-8-512BD4?logo=dotnet&logoColor=white)
+![.NET 10](https://img.shields.io/badge/.NET 10-512BD4?logo=dotnet&logoColor=white)
 [![Licencia GPL-3.0](https://img.shields.io/badge/licencia-GPL--3.0-blue)](LICENSE)
 ![Idiomas](https://img.shields.io/badge/idiomas-FR%20%7C%20EN%20%7C%20ES%20%7C%20DE-ff4d6d)
 
@@ -106,7 +106,7 @@ Aunque Shazim esté minimizado, pulsa **`Ctrl+Mayús+S`** desde cualquier aplica
 
 ## Privacidad
 
-El audio se guarda **solo en memoria** durante la escucha y luego se borra: nada se escribe en el disco. Solo se envía una **huella espectral** calculada en tu PC, nunca el sonido. Sin cuenta, sin anuncios, sin estadísticas. Tus datos están en `%LOCALAPPDATA%\Shazim`. Las letras se piden a [LRCLIB](https://lrclib.net) solo con artista, título, álbum y duración; la búsqueda de actualizaciones consulta GitHub sin enviar nada personal. Ambas se pueden desactivar.
+El audio se guarda **solo en memoria** durante la escucha y luego se borra: nada se escribe en el disco. Solo se envía una **huella espectral** calculada en tu PC, nunca el sonido. Sin cuenta, sin anuncios, sin estadísticas. Tus datos están en `%LOCALAPPDATA%\Shazim`. Las letras se piden a [LRCLIB](https://lrclib.net) solo con artista, título, álbum y duración; la búsqueda de actualizaciones consulta GitHub sin enviar nada personal. Ambas se pueden desactivar. **Sin geolocalización**: se envía siempre una posición fija y genérica, nunca la tuya. Las **actualizaciones están firmadas** (ver [SECURITY.md](SECURITY.md)).
 
 ## Preguntas frecuentes
 
@@ -117,7 +117,7 @@ El audio se guarda **solo en memoria** durante la escucha y luego se borra: nada
 
 ## Compilar
 
-Requisitos: Windows 10/11 y el [SDK de .NET 8](https://dotnet.microsoft.com/download/dotnet/8.0).
+Requisitos: Windows 10/11 y el [SDK de .NET 10](https://dotnet.microsoft.com/download/dotnet/10.0).
 
 ```powershell
 git clone https://github.com/painfullfeet/Shazim.git

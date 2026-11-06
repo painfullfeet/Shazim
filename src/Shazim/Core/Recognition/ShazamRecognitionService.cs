@@ -61,6 +61,7 @@ public class ShazamRecognitionService : IMusicRecognitionService
         var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         var body = new
         {
+            // Fixed, generic position (centre of France) on purpose: the user's real location is never sent.
             geolocation = new { altitude = 300, latitude = 45, longitude = 2 },
             signature = new { samplems = signature.SampleMilliseconds, timestamp = (uint)nowMs, uri = signature.ToDataUri() },
             timestamp = (uint)nowMs,
@@ -128,7 +129,7 @@ public class ShazamRecognitionService : IMusicRecognitionService
         if (t.TryGetProperty("images", out var images))
         {
             var art = Str(images, "coverarthq");
-            track.AlbumArtUrl = string.IsNullOrEmpty(art) ? Str(images, "coverart") : art;
+            track.AlbumArtUrl = HttpsOnly(string.IsNullOrEmpty(art) ? Str(images, "coverart") : art);
         }
 
         if (t.TryGetProperty("sections", out var sections) && sections.ValueKind == JsonValueKind.Array)
@@ -150,7 +151,7 @@ public class ShazamRecognitionService : IMusicRecognitionService
         // Links: Shazam page, Apple Music, preview audio, plus search links built from metadata.
         var shazamUrl = Str(t, "url");
         if (string.IsNullOrEmpty(shazamUrl) && t.TryGetProperty("share", out var share)) shazamUrl = Str(share, "href");
-        if (!string.IsNullOrEmpty(shazamUrl)) track.ExternalLinks.Add(new ExternalLink("Shazam", shazamUrl, "Shazam"));
+        if (HttpsOnly(shazamUrl) != "") track.ExternalLinks.Add(new ExternalLink("Shazam", shazamUrl, "Shazam"));
 
         // Streaming platforms Shazam lists for this track ("Disponible sur").
         var query = $"{track.Artist} {track.Title}".Trim();
@@ -159,10 +160,10 @@ public class ShazamRecognitionService : IMusicRecognitionService
             string? appleUrl = null;
             foreach (var uri in EnumerateActionUris(hub))
             {
-                if (string.IsNullOrEmpty(track.PreviewUrl) && uri.StartsWith("http") &&
+                if (string.IsNullOrEmpty(track.PreviewUrl) && HttpsOnly(uri) != "" &&
                     (uri.Contains(".m4a") || uri.Contains("audio-ssl") || uri.Contains("itunes.apple.com/itunes-assets")))
                     track.PreviewUrl = uri;
-                else if (uri.StartsWith("https://music.apple.com")) appleUrl ??= uri;
+                else if (uri.StartsWith("https://music.apple.com/", StringComparison.OrdinalIgnoreCase) && HttpsOnly(uri) != "") appleUrl ??= uri;
             }
 
             bool apple = appleUrl != null || Str(hub, "type").Equals("APPLEMUSIC", StringComparison.OrdinalIgnoreCase);
@@ -180,7 +181,7 @@ public class ShazamRecognitionService : IMusicRecognitionService
                         _ => null
                     };
                     if (platform == null) continue;
-                    var direct = EnumerateActionUris(provider).FirstOrDefault(u => u.StartsWith("https://"));
+                    var direct = EnumerateActionUris(provider).FirstOrDefault(u => HttpsOnly(u) != "");
                     LinkBuilder.Add(track, platform, direct ?? LinkBuilder.SearchUrl(platform, query));
                 }
             }
@@ -226,6 +227,10 @@ public class ShazamRecognitionService : IMusicRecognitionService
         }
     }
 
+    /// <summary>Network answers are untrusted: keep only well-formed https URLs (no file:, UNC, other schemes).</summary>
+    internal static string HttpsOnly(string? url) =>
+        Security.LinkPolicy.Sanitize(url) is { } safe && safe.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ? url!.Trim() : "";
+
     private static string Str(JsonElement e, string name) =>
         e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String
             ? v.GetString() ?? "" : "";
@@ -252,7 +257,7 @@ public static class LinkBuilder
 
     public static void Add(Track track, string platform, string url)
     {
-        if (track.FindLink(platform) == null)
+        if (track.FindLink(platform) == null && Security.LinkPolicy.IsSafe(url))
             track.ExternalLinks.Add(new ExternalLink(platform, url, platform));
     }
 }

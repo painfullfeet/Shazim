@@ -300,6 +300,7 @@
   "update.auto_check_hint": "Au démarrage, une fois par jour au plus, sur GitHub.",
   "update.available": "Mise à jour disponible ({0})",
   "update.bad_checksum": "Le fichier téléchargé ne correspond pas à la somme SHA-256 publiée : il a été supprimé.",
+  "update.bad_signature": "La signature de la mise à jour est invalide : elle n'a pas été installée.",
   "update.cancel": "Annuler",
   "update.check_now": "Rechercher les mises à jour",
   "update.checking": "Recherche…",

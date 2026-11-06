@@ -11,7 +11,7 @@ Application Windows gratuite et open source pour identifier une chanson : vidéo
 [![Téléchargements](https://img.shields.io/github/downloads/painfullfeet/Shazim/total?style=for-the-badge&color=2b2540&label=T%C3%A9l%C3%A9chargements)](https://github.com/painfullfeet/Shazim/releases)
 
 ![Windows 10/11](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows&logoColor=white)
-![.NET 8](https://img.shields.io/badge/.NET-8-512BD4?logo=dotnet&logoColor=white)
+![.NET 10](https://img.shields.io/badge/.NET 10-512BD4?logo=dotnet&logoColor=white)
 ![WPF](https://img.shields.io/badge/UI-WPF-5c2d91)
 [![Licence GPL-3.0](https://img.shields.io/badge/licence-GPL--3.0-blue)](LICENSE)
 ![Langues](https://img.shields.io/badge/langues-FR%20%7C%20EN%20%7C%20ES%20%7C%20DE-ff4d6d)
@@ -177,6 +177,9 @@ Active l'interrupteur **Auto Shazim** dans la barre latérale : Shazim écoute e
 - L'audio est gardé **en mémoire** le temps de l'écoute (12 s au plus) puis effacé : **rien n'est enregistré sur le disque**.
 - Seule une **empreinte spectrale** calculée sur ton PC est envoyée au service de reconnaissance, jamais le son.
 - Pas de compte, pas de publicité, pas de statistiques d'utilisation.
+- **Aucune géolocalisation** : le service de reconnaissance exige une position ; Shazim envoie toujours la même position fixe et générique (centre de la France), jamais la tienne.
+- **Mises à jour signées** : l'application n'installe une mise à jour que si sa signature (clé gardée hors de GitHub) et son SHA-256 sont valides. Détails dans [SECURITY.md](SECURITY.md).
+- **Liens filtrés** : seuls les liens web et Spotify/Deezer reçus des services en ligne peuvent être ouverts.
 - Tes données restent chez toi, dans `%LOCALAPPDATA%\Shazim` : bibliothèque (`shazim.db`), réglages, pochettes en cache, journal.
 - Les paroles sont demandées à [LRCLIB](https://lrclib.net) avec seulement l'artiste, le titre, l'album et la durée du morceau, puis gardées en cache. La recherche de mises à jour interroge GitHub sans rien envoyer de personnel. Les deux se désactivent dans les réglages.
 
@@ -226,7 +229,7 @@ Non, Shazim est une application Windows (10 et 11, 64 bits). Sous Linux, le proj
 
 ## Compiler depuis les sources
 
-Prérequis : Windows 10/11 et le [SDK .NET 8](https://dotnet.microsoft.com/download/dotnet/8.0).
+Prérequis : Windows 10/11 et le [SDK .NET 10](https://dotnet.microsoft.com/download/dotnet/10.0).
 
 ```powershell
 git clone https://github.com/painfullfeet/Shazim.git

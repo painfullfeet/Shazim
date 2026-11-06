@@ -16,6 +16,9 @@ public sealed record ReleaseInfo(Version Version, string Tag, string Notes, stri
     /// <summary>"SHA256SUMS.txt", the checksums of the files of the release.</summary>
     public ReleaseAsset? ChecksumAsset => Assets.FirstOrDefault(a => a.Name.Equals("SHA256SUMS.txt", StringComparison.OrdinalIgnoreCase));
 
+    /// <summary>"SHA256SUMS.txt.sig", the release key's signature of the checksum file.</summary>
+    public ReleaseAsset? SignatureAsset => Assets.FirstOrDefault(a => a.Name.Equals(UpdateTrust.SignatureFileName, StringComparison.OrdinalIgnoreCase));
+
     public string DisplayVersion => $"{Version.Major}.{Version.Minor}.{Math.Max(0, Version.Build)}";
 }
 
@@ -61,7 +64,8 @@ public static class UpdateParser
                 {
                     var name = Str(a, "name");
                     var url = Str(a, "browser_download_url");
-                    if (name.Length == 0 || !url.StartsWith("https://", StringComparison.OrdinalIgnoreCase)) continue;
+                    // Only files served from this repository's own release downloads.
+                    if (name.Length == 0 || !UpdateTrust.IsTrustedAssetUrl(url)) continue;
                     long size = a.TryGetProperty("size", out var s) && s.TryGetInt64(out var n) ? n : 0;
                     assets.Add(new ReleaseAsset(name, url, size));
                 }

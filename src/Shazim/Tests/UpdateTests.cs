@@ -58,8 +58,9 @@ public class UpdateTests
       "html_url": "https://github.com/painfullfeet/Shazim/releases/tag/v2.1.0",
       "body": "## Nouveautés\n- **Mises à jour** depuis l'app\n- Thèmes\n\n## English\n- Updates",
       "assets": [
-        { "name": "Shazim-Setup-2.1.0.exe", "size": 1000, "browser_download_url": "https://github.com/x/Shazim-Setup-2.1.0.exe" },
-        { "name": "SHA256SUMS.txt", "size": 90, "browser_download_url": "https://github.com/x/SHA256SUMS.txt" },
+        { "name": "Shazim-Setup-2.1.0.exe", "size": 1000, "browser_download_url": "https://github.com/painfullfeet/Shazim/releases/download/v2.1.0/Shazim-Setup-2.1.0.exe" },
+        { "name": "SHA256SUMS.txt", "size": 90, "browser_download_url": "https://github.com/painfullfeet/Shazim/releases/download/v2.1.0/SHA256SUMS.txt" },
+        { "name": "SHA256SUMS.txt.sig", "size": 90, "browser_download_url": "https://github.com/painfullfeet/Shazim/releases/download/v2.1.0/SHA256SUMS.txt.sig" },
         { "name": "evil.exe", "size": 1, "browser_download_url": "http://insecure/evil.exe" }
       ]
     }
@@ -110,16 +111,45 @@ public class UpdateTests
     {
         var payload = "fake installer bytes";
         var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(payload))).ToLowerInvariant();
-        var handler = new FakeHandler(req => req.RequestUri!.AbsolutePath.EndsWith(".txt")
-            ? (HttpStatusCode.OK, $"{hash}  Shazim-Setup-2.1.0.exe")
-            : (HttpStatusCode.OK, payload));
-        var service = NewService(handler);
+        var sums = $"{hash}  Shazim-Setup-2.1.0.exe";
+        var key = System.Security.Cryptography.ECDsa.Create(System.Security.Cryptography.ECCurve.NamedCurves.nistP256);
+        var sig = Sign(key, sums);
+        var handler = new FakeHandler(req => req.RequestUri!.AbsolutePath switch
+        {
+            var p when p.EndsWith(".txt") => (HttpStatusCode.OK, sums),
+            var p when p.EndsWith(".sig") => (HttpStatusCode.OK, sig),
+            _ => (HttpStatusCode.OK, payload)
+        });
+        var service = NewService(handler, Convert.ToBase64String(key.ExportSubjectPublicKeyInfo()));
 
         var path = await service.DownloadAsync(UpdateParser.ParseRelease(ReleaseJson)!, null);
         Assert.Equal(payload, File.ReadAllText(path));
         Assert.All(handler.Requests, r => Assert.Equal("Shazim-Updater", r.Headers.UserAgent.ToString()));
         File.Delete(path);
     }
+
+    [Fact]
+    public async Task Download_RefusesChecksumsSignedWithAnotherKey()
+    {
+        // An attacker controlling the release can publish matching checksums, but cannot sign them with the release key.
+        var payload = "malicious installer";
+        var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(payload))).ToLowerInvariant();
+        var sums = $"{hash}  Shazim-Setup-2.1.0.exe";
+        var attacker = System.Security.Cryptography.ECDsa.Create(System.Security.Cryptography.ECCurve.NamedCurves.nistP256);
+        var handler = new FakeHandler(req => req.RequestUri!.AbsolutePath switch
+        {
+            var p when p.EndsWith(".txt") => (HttpStatusCode.OK, sums),
+            var p when p.EndsWith(".sig") => (HttpStatusCode.OK, Sign(attacker, sums)),
+            _ => (HttpStatusCode.OK, payload)
+        });
+        var service = NewService(handler); // trusts only the real release key
+        await Assert.ThrowsAsync<Shazim.App.Services.UpdateException>(() => service.DownloadAsync(UpdateParser.ParseRelease(ReleaseJson)!, null));
+        Assert.DoesNotContain(handler.Requests, r => r.RequestUri!.AbsolutePath.EndsWith(".exe"));
+    }
+
+    private static string Sign(System.Security.Cryptography.ECDsa key, string text) => Convert.ToBase64String(key.SignData(
+        System.Text.Encoding.UTF8.GetBytes(text), System.Security.Cryptography.HashAlgorithmName.SHA256,
+        System.Security.Cryptography.DSASignatureFormat.IeeeP1363FixedFieldConcatenation));
 
     [Fact]
     public async Task Check_IsQuietWhenRateLimited()
@@ -141,7 +171,12 @@ public class UpdateTests
         Assert.False(service.AutoCheckDue()); // just checked
     }
 
-    private static Shazim.App.Services.UpdateService NewService(FakeHandler handler) => NewServiceWithSettings(handler).Service;
+    private static Shazim.App.Services.UpdateService NewService(FakeHandler handler, string? publicKey = null)
+    {
+        var service = NewServiceWithSettings(handler).Service;
+        if (publicKey != null) service.TrustedPublicKey = publicKey;
+        return service;
+    }
 
     private static (Shazim.App.Services.UpdateService Service, Shazim.App.SettingsService Settings) NewServiceWithSettings(FakeHandler handler)
     {

@@ -300,6 +300,7 @@
   "update.auto_check_hint": "Beim Start, höchstens einmal am Tag, auf GitHub.",
   "update.available": "Update verfügbar ({0})",
   "update.bad_checksum": "Die heruntergeladene Datei passt nicht zur veröffentlichten SHA-256-Summe: Sie wurde gelöscht.",
+  "update.bad_signature": "Die Signatur des Updates ist ungültig: Es wurde nicht installiert.",
   "update.cancel": "Abbrechen",
   "update.check_now": "Nach Updates suchen",
   "update.checking": "Wird gesucht…",

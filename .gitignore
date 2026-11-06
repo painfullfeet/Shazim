@@ -9,6 +9,7 @@ TestResults/
 # Local .NET SDK copies (download your own, see README)
 dotnet8/
 dotnet8sdk/
+dotnet10sdk/
 
 # IDE
 .vs/
@@ -30,6 +31,9 @@ art/
 .env
 *.pfx
 *.snk
+*.pem
+*.key
+*signing-key*
 
 # Old WiX installer experiment (replaced by the built-in installer)
 installer/

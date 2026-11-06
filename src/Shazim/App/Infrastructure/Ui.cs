@@ -171,8 +171,8 @@ public sealed class ArtworkConverter : IValueConverter
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is not string url || string.IsNullOrWhiteSpace(url) ||
-            !Uri.TryCreate(url, UriKind.Absolute, out var uri))
-            return null;
+            !Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
+            return null; // artwork comes from the network: https only, never a local path
 
         int width = parameter is string p && int.TryParse(p, out var w) ? w : 300;
         var key = width + "|" + url;
@@ -303,10 +303,12 @@ public sealed class VisibleWhenConverter : IValueConverter
 
 public static class Shell
 {
+    /// <summary>Opens a web (or Spotify/Deezer app) link. Anything else is refused, see <see cref="Core.Security.LinkPolicy"/>.</summary>
     public static void Open(string? url)
     {
-        if (string.IsNullOrWhiteSpace(url)) return;
-        try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); }
+        var safe = Core.Security.LinkPolicy.Sanitize(url);
+        if (safe == null) return;
+        try { Process.Start(new ProcessStartInfo(safe) { UseShellExecute = true }); }
         catch { /* no handler registered for this URL */ }
     }
 
