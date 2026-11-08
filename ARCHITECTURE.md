@@ -1,4 +1,4 @@
-# Architecture
+﻿# Architecture
 
 ```
 src/Shazim/
@@ -95,3 +95,15 @@ sont des ressources intégrées : aucun fichier n'est nécessaire à côté de l
 
 1. Copier `src/Shazim/App/Strings/en.json` en `<code>.json` et traduire les valeurs (garder `{0}`, `{1}`).
 2. Ajouter `("<code>", "Nom")` à `Loc.Languages` et la culture correspondante dans `Loc.SetLanguage`.
+
+## Version 2.3.0
+
+| Élément | Rôle |
+|---|---|
+| `Infrastructure/FxCanvas` | Effets Ondes, Particules et Néon dessinés autour du bouton à chaque image |
+| `Services/ThemeService` | Thème ASCII (vert phosphore) et mode multicolore (easter egg : 7 clics sur le logo d'*À propos*) |
+| `Infrastructure/LyricFx` | Animations des paroles : entrée floutée, remplissage karaoké, défilement fluide |
+| `Infrastructure/BrandIcons` | Logos des plateformes (Simple Icons, CC0) ; Deezer en icône neutre |
+| `Core/Services/TrackExtrasService` | Date de sortie exacte, BPM, durée, crédits depuis l'API publique Deezer, en cache disque |
+| `IAudioCaptureService.FindPlayingApp` | Application qui joue le son (sessions audio Windows), affichée par Auto Shazim |
+| `IdentifyRequest.IgnoreTrack` | Auto Shazim ignore les extraits joués par Shazim lui-même |

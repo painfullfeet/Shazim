@@ -61,6 +61,33 @@ public static class DevSnapshot
                 if (int.TryParse(arg, out int i) && i < tracks.Count) main?.ShowTrack(tracks[i]);
                 break;
             case "theme": Services.ThemeService.ApplyTheme(arg); break;
+            case "fxstate":
+            {
+                var home = main == null ? null : FindChild<Views.HomeView>(main);
+                File.WriteAllText(Path.Combine(Environment.GetEnvironmentVariable("SHAZIM_SNAPSHOT_DIR")!, "fxstate.txt"), home?.DevState() ?? "no home view");
+                break;
+            }
+            case "fakemusic": Services.MusicVisualizer.DevFakeMusic = arg != "off"; break;
+            case "rainbow": Services.ThemeService.SetRainbow(arg != "off"); break;
+            case "effect":
+            {
+                var settings = (SettingsService)App.Current.Services.GetService(typeof(SettingsService))!;
+                settings.GetSettings().General.ButtonEffect = arg;
+                settings.Save();
+                break;
+            }
+            case "autocard":
+            {
+                var lib = (Core.Services.LibraryService)App.Current.Services.GetService(typeof(Core.Services.LibraryService))!;
+                var all = await lib.SearchAsync(null);
+                var controller = (Services.IdentifyController)App.Current.Services.GetService(typeof(Services.IdentifyController))!;
+                if (all.Count > 0)
+                    controller.ShowExternal(new Core.Recognition.IdentifyOutcome
+                    {
+                        Kind = Core.Recognition.IdentifyOutcomeKind.Match, Track = all[0], IsAuto = true, SourceApp = "Spotify", SourceName = "Spotify · Haut-parleurs"
+                    });
+                break;
+            }
             case "accent":
                 if (arg.StartsWith('#')) Services.ThemeService.ApplyAccent(Services.ThemeService.CustomKey, arg);
                 else Services.ThemeService.ApplyAccent(arg, null);
@@ -119,6 +146,19 @@ public static class DevSnapshot
                 }
                 break;
         }
+    }
+
+    private static T? FindChild<T>(DependencyObject root) where T : DependencyObject
+    {
+        var stack = new Stack<DependencyObject>();
+        stack.Push(root);
+        while (stack.Count > 0)
+        {
+            var d = stack.Pop();
+            if (d is T t) return t;
+            for (int k = 0; k < VisualTreeHelper.GetChildrenCount(d); k++) stack.Push(VisualTreeHelper.GetChild(d, k));
+        }
+        return null;
     }
 
     private static System.Windows.Controls.ScrollViewer? FindScroller(DependencyObject root)

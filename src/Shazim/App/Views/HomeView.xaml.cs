@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
@@ -46,6 +47,15 @@ public partial class HomeView : UserControl, IRefreshable
     private bool _renderHooked;
     private bool _refreshQueued;
     private Storyboard? _ripples;
+    private long _lastFrame;
+
+    private int _frames;
+    internal string DevState() =>
+        $"effect={_effect} reactive={_reactive} hooked={_renderHooked} loaded={IsLoaded} visible={IsVisible} frames={_frames} " +
+        $"signal={_visualizer.HasSignal} beat={_beat:F2} bass={_bass:F2} ascii={_ascii} reduce={Shell.ReduceMotion} " +
+        $"win={Window.GetWindow(this)?.WindowState}";
+
+    private static bool IsFxEffect(string e) => e is ButtonEffect.Waves or ButtonEffect.Particles or ButtonEffect.Neon;
 
     public HomeView(IServiceProvider services)
     {
@@ -80,6 +90,75 @@ public partial class HomeView : UserControl, IRefreshable
             if (e.Key == Key.Escape && ResultPanel.Visibility == Visibility.Visible) { ShowListen(); e.Handled = true; }
         };
         ApplyListeningState();
+        ApplyThemeLook();
+        ThemeService.Changed += (_, _) => Dispatcher.BeginInvoke(() => { ApplyThemeLook(); UpdateReactive(); });
+    }
+
+    // ===== Thème ASCII =====
+
+    private const string AsciiZ =
+        " _________ \n" +
+        "|_____   / \n" +
+        "     /  /  \n" +
+        "    /  /   \n" +
+        "   /  /    \n" +
+        "  /  /____ \n" +
+        " /________|";
+
+    private bool _ascii;
+
+    /// <summary>ASCII theme: text logo on a dotted disc, and the character background.</summary>
+    private void ApplyThemeLook()
+    {
+        _ascii = ThemeService.IsAscii;
+        AsciiLogo.Text = AsciiZ;
+        AsciiLogo.Visibility = AsciiDisc.Visibility = AsciiBack.Visibility = _ascii ? Visibility.Visible : Visibility.Collapsed;
+        CoreDisc.Visibility = _ascii ? Visibility.Collapsed : Visibility.Visible;
+        if (Brand.Logo != null) LogoImage.Visibility = _ascii ? Visibility.Collapsed : Visibility.Visible;
+        else CoreGlyph.Visibility = _ascii ? Visibility.Collapsed : Visibility.Visible;
+        if (!_ascii) AsciiBack.Text = "";
+    }
+
+    private const string AsciiRamp = " .,:;-=+*#%@";
+    private readonly System.Text.StringBuilder _asciiText = new();
+    private double _asciiClock, _sinceBeat = 10;
+    private int _asciiFrame;
+
+    /// <summary>
+    /// A field of characters: denser where the spectrum is loud (by angle around the button),
+    /// with a ring of dense characters travelling outwards from the button on every beat.
+    /// </summary>
+    private void DrawAsciiBackground(double dt)
+    {
+        _asciiClock += dt;
+        _sinceBeat += dt;
+        if (++_asciiFrame % 2 != 0) return; // ~30 updates per second is plenty
+        double w = AsciiBack.ActualWidth, h = AsciiBack.ActualHeight;
+        if (w < 20 || h < 20) return;
+        int cols = (int)(w / 6.6), rows = (int)(h / 14);
+        // The button sits in the middle of the listening column.
+        double cx = cols / 2.0, cy = rows * 0.47;
+        double ringR = _sinceBeat * 55 * ThemeService.EffectBoost; // in character cells (width units)
+        int n = _bands.Length;
+        _asciiText.Clear();
+        for (int y = 0; y < rows; y++)
+        {
+            for (int x = 0; x < cols; x++)
+            {
+                double dx = x - cx, dy = (y - cy) * 2.1; // characters are twice as tall as wide
+                double d = Math.Sqrt(dx * dx + dy * dy);
+                double t = (Math.Atan2(dx, -dy) / (2 * Math.PI) + 1) % 1;
+                double tm = t < 0.5 ? t * 2 : (1 - t) * 2;
+                double band = n == 0 ? 0 : _bands[Math.Min(n - 1, (int)(tm * (n - 1)))];
+                double v = band * Math.Exp(-Math.Max(0, d - 22) / 26) * 1.4;
+                v += Math.Exp(-Math.Pow((d - ringR) / 3.2, 2)) * Math.Max(0, 1 - _sinceBeat * 0.9);
+                v += 0.06 * (Math.Sin(x * 0.31 + _asciiClock * 1.7) + Math.Cos(y * 0.47 - _asciiClock * 1.3) + 2) * (0.3 + _bass);
+                int idx = (int)Math.Clamp(v * (AsciiRamp.Length - 1), 0, AsciiRamp.Length - 1);
+                _asciiText.Append(AsciiRamp[idx]);
+            }
+            if (y < rows - 1) _asciiText.Append('\n');
+        }
+        AsciiBack.Text = _asciiText.ToString();
     }
 
     public async Task RefreshAsync()
@@ -241,8 +320,9 @@ public partial class HomeView : UserControl, IRefreshable
     {
         var s = _settings.GetSettings();
         _effect = s.General.ButtonEffect;
-        bool on = IsLoaded && IsVisible && _effect != ButtonEffect.Off && !Shell.ReduceMotion;
+        bool on = IsLoaded && IsVisible && (_effect != ButtonEffect.Off || ThemeService.IsAscii) && !Shell.ReduceMotion;
         if (_effect != ButtonEffect.Aura) DrawAura(false);
+        if (!IsFxEffect(_effect)) Fx.Clear();
         if (on == _reactive) return;
         _reactive = on;
         if (on) _visualizer.Start(s.Audio.OutputDeviceId);
@@ -250,6 +330,7 @@ public partial class HomeView : UserControl, IRefreshable
         {
             _visualizer.Stop();
             DrawAura(false);
+            Fx.Clear();
             Array.Clear(_bands);
             _bass = 0;
             _beat = 0;
@@ -277,12 +358,16 @@ public partial class HomeView : UserControl, IRefreshable
     /// </summary>
     private void OnRendering(object? sender, EventArgs e)
     {
+        _frames++;
         if (Window.GetWindow(this)?.WindowState == WindowState.Minimized) return;
 
         double target = Shell.ReduceMotion || !_controller.IsBusy ? 0 : Math.Min(1.0, Math.Sqrt(Math.Max(0, _controller.Level)) * 1.8);
         _smoothLevel += (target - _smoothLevel) * (target > _smoothLevel ? 0.35 : 0.08);
 
         double kick = 0;
+        long now = System.Diagnostics.Stopwatch.GetTimestamp();
+        double dt = _lastFrame == 0 ? 1 / 60.0 : Math.Min(0.1, (now - _lastFrame) / (double)System.Diagnostics.Stopwatch.Frequency);
+        _lastFrame = now;
         if (_reactive)
         {
             float bass = _visualizer.Read(_bandsRaw);
@@ -292,13 +377,19 @@ public partial class HomeView : UserControl, IRefreshable
             for (int i = 0; i < _bands.Length; i++)
                 _bands[i] += (_bandsRaw[i] - _bands[i]) * (_bandsRaw[i] > _bands[i] ? 0.5 : 0.12);
             kick = UpdateBeat();
+            if (_beat >= 0.999) _sinceBeat = 0;
             DrawAura(_effect == ButtonEffect.Aura);
+            if (IsFxEffect(_effect))
+                Fx.Update(_effect, _bands, _bass, _beat, _beat >= 0.999, dt, (Color)FindResource("SignalColor"),
+                    ThemeService.IsRainbow, ThemeService.RainbowHue, ThemeService.EffectBoost);
+            if (_ascii) DrawAsciiBackground(dt);
         }
 
         // The logo swells on every beat (tempo) and a little with the overall bass.
-        // "Pulsation" has no aura, so its kick is stronger and each beat sends a ring outwards.
-        double kickAmount = _effect == ButtonEffect.Pulse ? 0.17 : 0.11;
-        CoreScale.ScaleX = CoreScale.ScaleY = 1 + 0.06 * _smoothLevel + kickAmount * kick + 0.03 * _bass;
+        // "Pulsation" has no aura, so its kick is much stronger and each beat sends a big ring outwards.
+        double boost = ThemeService.EffectBoost;
+        double kickAmount = (_effect == ButtonEffect.Pulse ? 0.3 : _effect == ButtonEffect.Off ? 0 : 0.11) * boost;
+        CoreScale.ScaleX = CoreScale.ScaleY = 1 + 0.06 * _smoothLevel + kickAmount * kick + 0.03 * _bass * boost;
     }
 
     // ===== Aura (spectre lissé) et pulsation au rythme =====
@@ -309,6 +400,7 @@ public partial class HomeView : UserControl, IRefreshable
     private double _beat;
     private int _beatsSeen;
     private bool _ringToggle;
+    private bool _auraTinted;
 
     /// <summary>
     /// The visualizer finds beats at its own analysis rate (see BeatDetector); every new one
@@ -338,10 +430,15 @@ public partial class HomeView : UserControl, IRefreshable
         _ringToggle = !_ringToggle;
         var (ring, scale) = _ringToggle ? (BeatRing1, BeatRing1Scale) : (BeatRing2, BeatRing2Scale);
         var ease = new QuadraticEase { EasingMode = EasingMode.EaseOut };
-        var grow = new DoubleAnimation(1.0, 1.42, TimeSpan.FromMilliseconds(560)) { EasingFunction = ease };
+        // Bigger, longer rings; even bigger (and coloured) in multicolour mode.
+        double to = ThemeService.IsRainbow ? 2.4 : 1.9;
+        var time = TimeSpan.FromMilliseconds(ThemeService.IsRainbow ? 820 : 700);
+        var grow = new DoubleAnimation(1.0, to, time) { EasingFunction = ease };
+        if (ThemeService.IsRainbow) ring.Stroke = new SolidColorBrush(ThemeService.FromHue((ThemeService.RainbowHue + 120) % 360));
+        else ring.SetResourceReference(System.Windows.Shapes.Shape.StrokeProperty, "SignalBrush");
         scale.BeginAnimation(ScaleTransform.ScaleXProperty, grow);
         scale.BeginAnimation(ScaleTransform.ScaleYProperty, grow);
-        ring.BeginAnimation(OpacityProperty, new DoubleAnimation(0.9, 0, TimeSpan.FromMilliseconds(560)) { EasingFunction = ease });
+        ring.BeginAnimation(OpacityProperty, new DoubleAnimation(1, 0, time) { EasingFunction = ease });
     }
 
     private void DrawAura(bool show)
@@ -377,10 +474,27 @@ public partial class HomeView : UserControl, IRefreshable
             return;
         }
 
-        double swell = 1 + 0.06 * _beat;
+        double boost = ThemeService.EffectBoost;
+        double swell = (1 + 0.06 * _beat) * boost;
         AuraOuter.Data = Blob(101, 62 * swell);
         AuraMiddle.Data = Blob(100, 44 * swell);
         AuraInner.Data = Blob(99, 24 * swell);
+        if (ThemeService.IsRainbow)
+        {
+            // Multicolour: each layer a different hue, turning with the cycle.
+            double h = ThemeService.RainbowHue;
+            AuraOuter.Fill = new LinearGradientBrush(ThemeService.FromHue(h), ThemeService.FromHue((h + 120) % 360), 45);
+            AuraMiddle.Fill = new LinearGradientBrush(ThemeService.FromHue((h + 120) % 360), ThemeService.FromHue((h + 240) % 360), 135);
+            AuraInner.Fill = new SolidColorBrush(ThemeService.FromHue((h + 240) % 360));
+            _auraTinted = true;
+        }
+        else if (_auraTinted)
+        {
+            AuraOuter.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, "SignalBrush");
+            AuraMiddle.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, "SignalBrush");
+            AuraInner.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, "SignalDeepBrush");
+            _auraTinted = false;
+        }
     }
 
     /// <summary>Closed smooth curve (Catmull-Rom through the ring) around the button.</summary>
@@ -429,6 +543,10 @@ public partial class HomeView : UserControl, IRefreshable
     {
         switch (outcome.Kind)
         {
+            case IdentifyOutcomeKind.Match when outcome.Track != null && outcome.IsAuto:
+                // Auto Shazim: a small card under the button, the screen stays as it is.
+                ShowAutoCard(outcome);
+                break;
             case IdentifyOutcomeKind.Match when outcome.Track != null:
                 var badge = outcome.IsAuto
                     ? Loc.T("mainwin.auto_shazim") + " · " + DateTime.Now.ToString("t", Loc.Instance.Culture)
@@ -476,6 +594,44 @@ public partial class HomeView : UserControl, IRefreshable
     }
 
     private void Back_Click(object sender, RoutedEventArgs e) => ShowListen();
+
+    // ===== Carte Auto Shazim =====
+
+    private Track? _autoTrack;
+
+    private void ShowAutoCard(IdentifyOutcome outcome)
+    {
+        var track = outcome.Track!;
+        _autoTrack = track;
+        AutoBadge.Text = Loc.T("mainwin.auto_shazim") + " · " + DateTime.Now.ToString("t", Loc.Instance.Culture);
+        AutoTitle.Text = track.DisplayTitle;
+        AutoArtist.Text = track.DisplayArtist;
+        AutoInitial.Text = ArtInitial.Of(track);
+        AutoArt.ImageSource = (TryFindResource("Artwork") as IValueConverter)?.Convert(track.AlbumArtUrl, typeof(ImageSource), "56",
+            System.Globalization.CultureInfo.InvariantCulture) as ImageSource;
+        bool hasApp = !string.IsNullOrEmpty(outcome.SourceApp);
+        AutoSource.Text = hasApp ? Loc.F("auto.source_app", outcome.SourceApp) : "";
+        AutoSourceRow.Visibility = hasApp ? Visibility.Visible : Visibility.Collapsed;
+        AutoCard.Visibility = Visibility.Visible;
+        if (Shell.ReduceMotion) return;
+        var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+        AutoCard.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(320)) { EasingFunction = ease });
+        AutoCardSlide.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(14, 0, TimeSpan.FromMilliseconds(380)) { EasingFunction = ease });
+    }
+
+    private void AutoCard_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (e.OriginalSource is DependencyObject d && FindParent<Button>(d) != null) return;
+        if (_autoTrack != null) (Window.GetWindow(this) as MainWindow)?.ShowTrack(_autoTrack);
+    }
+
+    private void AutoCardClose_Click(object sender, RoutedEventArgs e) => AutoCard.Visibility = Visibility.Collapsed;
+
+    private static T? FindParent<T>(DependencyObject d) where T : DependencyObject
+    {
+        for (var x = d; x != null; x = VisualTreeHelper.GetParent(x)) if (x is T t) return t;
+        return null;
+    }
 
     // ===== Source & récents =====
 

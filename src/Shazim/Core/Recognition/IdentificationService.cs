@@ -22,6 +22,9 @@ public sealed class IdentifyOutcome
     /// <summary>Source that heard the track (PC output or microphone name).</summary>
     public string SourceName { get; init; } = "";
 
+    /// <summary>Application that was playing the track (PC sound only), e.g. "Spotify".</summary>
+    public string? SourceApp { get; init; }
+
     /// <summary>Auto mode found a track already detected within the duplicate window (not recorded again).</summary>
     public bool IsDuplicate { get; init; }
     public TimeSpan Duration { get; init; }
@@ -35,6 +38,9 @@ public sealed record IdentifyRequest(IReadOnlyList<string> DeviceIds, bool IsAut
 {
     public IdentifyRequest(string deviceId, bool IsAuto, int MaxDurationMs = 12000, int DuplicateWindowMinutes = 15)
         : this(new[] { deviceId }, IsAuto, MaxDurationMs, DuplicateWindowMinutes) { }
+
+    /// <summary>Matches to drop (not saved, reported as "no match"), e.g. Shazim's own preview playing.</summary>
+    public Func<string, bool>? IgnoreTrack { get; init; }
 }
 
 /// <summary>
@@ -140,14 +146,19 @@ public class IdentificationService
                     return (x.Session, Result: r, SampleStart: x.At - x.Clip.Duration);
                 })).ConfigureAwait(false);
 
-                var match = results.FirstOrDefault(r => r.Result.IsMatch);
+                var match = results.FirstOrDefault(r => r.Result.IsMatch && request.IgnoreTrack?.Invoke(r.Result.Track!.Id) != true);
+                if (match.Result == null && results.Any(r => r.Result.IsMatch))
+                    _logger.LogInformation("Match ignored (Shazim's own preview)");
                 if (match.Result != null)
                 {
                     var anchor = match.Result.MatchOffsetSeconds is { } offset
                         ? new Lyrics.PlaybackAnchor(match.Result.Track!.Id, offset, match.SampleStart)
                         : (Lyrics.PlaybackAnchor?)null;
-                    var kind = SourceKinds.FromDeviceId(deviceOf.GetValueOrDefault(match.Session));
-                    return await SaveAsync(match.Result, request, match.Session.DeviceName, kind, DateTime.UtcNow - started, anchor).ConfigureAwait(false);
+                    var deviceId = deviceOf.GetValueOrDefault(match.Session);
+                    var kind = SourceKinds.FromDeviceId(deviceId);
+                    // Which app is playing it (PC sound), asked while the music is still on.
+                    string? app = deviceId == null ? null : _capture.FindPlayingApp(deviceId);
+                    return await SaveAsync(match.Result, request, match.Session.DeviceName, kind, DateTime.UtcNow - started, anchor, app).ConfigureAwait(false);
                 }
 
                 lastResult = results.Any(r => r.Result.Status == RecognitionStatus.NoMatch)
@@ -201,9 +212,11 @@ public class IdentificationService
         return list;
     }
 
-    private async Task<IdentifyOutcome> SaveAsync(RecognitionResult result, IdentifyRequest request, string sourceName, string sourceKind,
-        TimeSpan duration, Lyrics.PlaybackAnchor? anchor)
+    private async Task<IdentifyOutcome> SaveAsync(RecognitionResult result, IdentifyRequest request, string deviceName, string sourceKind,
+        TimeSpan duration, Lyrics.PlaybackAnchor? anchor, string? app = null)
     {
+        // History shows "Spotify · Haut-parleurs" when the app is known.
+        string sourceName = string.IsNullOrEmpty(app) ? deviceName : $"{app} · {deviceName}";
         var track = result.Track!;
         _dedup.SetWindow(request.DuplicateWindowMinutes);
         bool duplicate = _dedup.IsDuplicate(track.Id);
@@ -224,6 +237,7 @@ public class IdentificationService
             Track = stored,
             IsAuto = request.IsAuto,
             SourceName = sourceName,
+            SourceApp = app,
             IsDuplicate = request.IsAuto && duplicate,
             Duration = duration,
             Anchor = anchor

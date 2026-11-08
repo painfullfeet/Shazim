@@ -98,7 +98,7 @@
                         <TextBlock Text="{infra:T theme.title}" Style="{StaticResource RowLabel}"/>
                         <TextBlock Text="{infra:T theme.hint}" Style="{StaticResource RowHint}"/>
                     </StackPanel>
-                    <Border Width="340" HorizontalAlignment="Right" VerticalAlignment="Center" Background="{DynamicResource InkBrush}" CornerRadius="10" Padding="3">
+                    <Border Width="420" HorizontalAlignment="Right" VerticalAlignment="Center" Background="{DynamicResource InkBrush}" CornerRadius="10" Padding="3">
                         <UniformGrid Rows="1">
                             <RadioButton x:Name="ThemeNight" Style="{StaticResource SegmentItem}" Content="{infra:T theme.nuit}" GroupName="theme" Click="Theme_Click"/>
                             <RadioButton x:Name="ThemeMidnight" Style="{StaticResource SegmentItem}" Content="{infra:T theme.minuit}" GroupName="theme" Click="Theme_Click"
@@ -106,6 +106,8 @@
                             <RadioButton x:Name="ThemeLight" Style="{StaticResource SegmentItem}" Content="{infra:T theme.clair}" GroupName="theme" Click="Theme_Click"/>
                             <RadioButton x:Name="ThemeSystem" Style="{StaticResource SegmentItem}" Content="{infra:T theme.systeme}" GroupName="theme" Click="Theme_Click"
                                          ToolTip="{infra:T theme.systeme_tip}"/>
+                            <RadioButton x:Name="ThemeAscii" Style="{StaticResource SegmentItem}" Content="ASCII" GroupName="theme" Click="Theme_Click"
+                                         FontFamily="Consolas" ToolTip="{infra:T theme.ascii_tip}"/>
                         </UniformGrid>
                     </Border>
                 </Grid>
@@ -114,10 +116,13 @@
                         <TextBlock Text="{infra:T settings.effet_du_bouton_ecouter}" Style="{StaticResource RowLabel}"/>
                         <TextBlock Text="{infra:T settings.suit_la_musique_jouee_sur}" Style="{StaticResource RowHint}"/>
                     </StackPanel>
-                    <Border Width="300" HorizontalAlignment="Right" VerticalAlignment="Center" Background="{DynamicResource InkBrush}" CornerRadius="10" Padding="3">
-                        <UniformGrid Rows="1">
+                    <Border Width="330" HorizontalAlignment="Right" VerticalAlignment="Center" Background="{DynamicResource InkBrush}" CornerRadius="10" Padding="3">
+                        <UniformGrid Rows="2" Columns="3">
                             <RadioButton x:Name="EffectAura" Style="{StaticResource SegmentItem}" Content="{infra:T settings.aura}" GroupName="effect" Click="Any_Click"/>
                             <RadioButton x:Name="EffectPulse" Style="{StaticResource SegmentItem}" Content="{infra:T settings.pulsation}" GroupName="effect" Click="Any_Click"/>
+                            <RadioButton x:Name="EffectWaves" Style="{StaticResource SegmentItem}" Content="{infra:T effect.waves}" GroupName="effect" Click="Any_Click"/>
+                            <RadioButton x:Name="EffectParticles" Style="{StaticResource SegmentItem}" Content="{infra:T effect.particles}" GroupName="effect" Click="Any_Click"/>
+                            <RadioButton x:Name="EffectNeon" Style="{StaticResource SegmentItem}" Content="{infra:T effect.neon}" GroupName="effect" Click="Any_Click"/>
                             <RadioButton x:Name="EffectOff" Style="{StaticResource SegmentItem}" Content="{infra:T settings.aucun}" GroupName="effect" Click="Any_Click"/>
                         </UniformGrid>
                     </Border>
@@ -301,7 +306,11 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Grid Width="56" Height="56" VerticalAlignment="Top" Margin="0,2,18,0">
+                    <Grid x:Name="AboutBadge" Width="56" Height="56" VerticalAlignment="Top" Margin="0,2,18,0" Background="Transparent"
+                          RenderTransformOrigin="0.5,0.5" MouseLeftButtonUp="AboutLogo_Click">
+                        <Grid.RenderTransform>
+                            <TransformGroup><ScaleTransform x:Name="AboutBadgeScale"/><RotateTransform x:Name="AboutBadgeSpin"/></TransformGroup>
+                        </Grid.RenderTransform>
                         <Ellipse Fill="{DynamicResource SignalGradientBrush}"/>
                         <Image x:Name="AboutLogo" Width="24" Height="24" RenderOptions.BitmapScalingMode="HighQuality"/>
                     </Grid>

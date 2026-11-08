@@ -15,7 +15,7 @@ Kostenlose Open-Source-App für Windows, die jeden Song erkennt: YouTube-Video, 
 [![Lizenz GPL-3.0](https://img.shields.io/badge/Lizenz-GPL--3.0-blue)](LICENSE)
 ![Sprachen](https://img.shields.io/badge/Sprachen-FR%20%7C%20EN%20%7C%20ES%20%7C%20DE-ff4d6d)
 
-[Français](README.md) · [English](README.en.md) · [Español](README.es.md) · **Deutsch**
+[English](README.md) · [Français](README.fr.md) · [Español](README.es.md) · **Deutsch**
 
 </div>
 
@@ -46,7 +46,7 @@ Es kann auch das Mikrofon nutzen, um die Musik im Raum zu erkennen – oder beid
 | 💿 **Vollständige Titelseite** | Cover, Album, Jahr, Genre, Label, 30-s-Hörprobe, Plattformen (Spotify, Apple Music, Deezer, YouTube Music), Anzahl der Erkennungen und Verlauf. |
 | 📚 **Bibliothek** | Alle Titel, Suche, Favoriten, Sortierung, Hörproben in der Liste, Export als CSV oder JSON. |
 | 🔁 **Auto Shazim** | Hört im Hintergrund durchgehend zu und speichert jeden neuen Titel. |
-| 🌊 **Lebendige Taste** | Die Hör-Taste reagiert auf die Musik: Aura wie ein Visualizer oder Logo-Puls im Takt. |
+| 🌊 **Lebendige Taste** | Die Hör-Taste reagiert auf die Musik, mit 5 Effekten: Aura, Puls, Wellen, Partikel und Neon. Dazu ein ASCII-Theme. |
 | 🎨 **Designs und Farben** | 4 Designs (*Nacht*, *Mitternacht* reines Schwarz für OLED, *Hell*, *Wie Windows*), 5 Akzentfarben oder deine eigene (Farbton + Hex-Code). |
 | 🎤 **Synchronisierte Songtexte** | Karaoke-Stil auf der Titelseite: Die gesungene Zeile leuchtet und scrollt von selbst, mit ±-Korrektur. Quelle: [LRCLIB](https://lrclib.net). |
 | 🪟 **Kompaktes Widget** | Kleine, immer sichtbare Karte: Cover, Titel, Künstler, Auto Shazim, Shazim-Taste und die aktuelle Textzeile. |
@@ -130,7 +130,7 @@ cd Shazim
 
 Erstellt von **Painfullfeet**, mit Hilfe von **[Claude](https://claude.ai)**, dem KI-Assistenten von Anthropic.
 
-Signatur-Algorithmus: Portierung von [SongRec](https://github.com/marin-m/SongRec) (GPL-3.0) · Audio: [NAudio](https://github.com/naudio/NAudio) (MIT) · Schrift: [Outfit](https://github.com/Outfitio/Outfit-Fonts) (SIL OFL) · Icons: [Phosphor](https://phosphoricons.com) (MIT). · Songtexte: [LRCLIB](https://lrclib.net)
+Signatur-Algorithmus: Portierung von [SongRec](https://github.com/marin-m/SongRec) (GPL-3.0) · Audio: [NAudio](https://github.com/naudio/NAudio) (MIT) · Schrift: [Outfit](https://github.com/Outfitio/Outfit-Fonts) (SIL OFL) · Icons: [Phosphor](https://phosphoricons.com) (MIT). · Songtexte: [LRCLIB](https://lrclib.net) · Logos: [Simple Icons](https://simpleicons.org) (CC0) · Daten: [Deezer API](https://developers.deezer.com)
 
 Shazim ist freie Software unter der **[GNU GPL v3](LICENSE)**.
 

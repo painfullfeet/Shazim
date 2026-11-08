@@ -95,7 +95,7 @@
 
             <!-- Paroles synchronisées : ligne en cours + suivante -->
             <StackPanel x:Name="LyricsPanel" Margin="4,10,4,2" Visibility="Collapsed">
-                <TextBlock x:Name="LyricNow" Style="{StaticResource BodyText}" FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                <TextBlock x:Name="LyricNow" Style="{StaticResource BodyText}" FontSize="15" FontWeight="Bold" TextTrimming="CharacterEllipsis"
                            Foreground="{DynamicResource PaperBrush}"/>
                 <TextBlock x:Name="LyricNext" Style="{StaticResource MutedText}" FontSize="12" Margin="0,2,0,0" TextTrimming="CharacterEllipsis" Opacity="0.75"/>
             </StackPanel>

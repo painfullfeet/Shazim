@@ -79,6 +79,66 @@ public sealed class AudioCaptureService : IAudioCaptureService
         }
     }
 
+    /// <inheritdoc />
+    public string? FindPlayingApp(string deviceId)
+    {
+        try
+        {
+            using var enumerator = new MMDeviceEnumerator();
+            var device = ResolveDevice(enumerator, deviceId, out bool isInput);
+            if (device == null || isInput) return null;
+            var sessions = device.AudioSessionManager.Sessions;
+            int self = Environment.ProcessId;
+            string? best = null;
+            float loudest = 0.003f;
+            for (int i = 0; i < sessions.Count; i++)
+            {
+                var s = sessions[i];
+                if (s.IsSystemSoundsSession) continue;
+                int pid = (int)s.GetProcessID;
+                if (pid == 0 || pid == self) continue;
+                float peak = s.AudioMeterInformation.MasterPeakValue;
+                if (peak <= loudest) continue;
+                loudest = peak;
+                best = AppName(pid, s.DisplayName);
+            }
+            return best;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug("Playing app not found: {Message}", ex.Message);
+            return null;
+        }
+    }
+
+    private static readonly Dictionary<string, string> KnownApps = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["chrome"] = "Google Chrome", ["msedge"] = "Microsoft Edge", ["firefox"] = "Firefox", ["opera"] = "Opera",
+        ["brave"] = "Brave", ["spotify"] = "Spotify", ["discord"] = "Discord", ["vlc"] = "VLC", ["deezer"] = "Deezer",
+        ["applemusic"] = "Apple Music", ["itunes"] = "iTunes", ["cider"] = "Cider", ["obs64"] = "OBS", ["steam"] = "Steam",
+        ["teams"] = "Teams", ["ms-teams"] = "Teams", ["zoom"] = "Zoom", ["wmplayer"] = "Lecteur Windows Media", ["music.ui"] = "Lecteur multimédia",
+    };
+
+    /// <summary>A readable application name for a process id.</summary>
+    internal static string AppName(int pid, string? sessionName)
+    {
+        try
+        {
+            using var p = System.Diagnostics.Process.GetProcessById(pid);
+            if (KnownApps.TryGetValue(p.ProcessName, out var known)) return known;
+            try
+            {
+                var desc = p.MainModule?.FileVersionInfo.FileDescription;
+                if (!string.IsNullOrWhiteSpace(desc) && desc.Length <= 40) return desc.Trim();
+            }
+            catch { /* protected process: use its name */ }
+            if (!string.IsNullOrWhiteSpace(sessionName) && !sessionName.StartsWith('@')) return sessionName;
+            var name = p.ProcessName;
+            return name.Length > 0 ? char.ToUpperInvariant(name[0]) + name[1..] : name;
+        }
+        catch { return string.IsNullOrWhiteSpace(sessionName) ? "?" : sessionName; }
+    }
+
     private static MMDevice? ResolveDevice(MMDeviceEnumerator enumerator, string deviceId, out bool isInput)
     {
         isInput = false;

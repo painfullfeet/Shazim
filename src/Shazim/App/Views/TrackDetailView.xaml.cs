@@ -21,12 +21,14 @@ public partial class TrackDetailView : UserControl
     private readonly PreviewPlayer _player;
     private readonly ArtworkConverter _art = new();
     private readonly bool _showHistory;
+    private readonly Core.Services.TrackExtrasService _extras;
     private Track? _track;
 
     public TrackDetailView(IServiceProvider services, bool showHistory, bool allowDelete)
     {
         _library = services.GetRequiredService<LibraryService>();
         _player = services.GetRequiredService<PreviewPlayer>();
+        _extras = services.GetRequiredService<Core.Services.TrackExtrasService>();
         _showHistory = showHistory;
         _now = services.GetRequiredService<NowPlayingService>();
         var settings = services.GetRequiredService<SettingsService>();
@@ -169,7 +171,8 @@ public partial class TrackDetailView : UserControl
     {
         var t = new TextBlock
         {
-            Text = text, TextWrapping = TextWrapping.Wrap, FontSize = 15, Margin = new Thickness(0, 3, 0, 3),
+            // Bigger as soon as there are lyrics; the sung line grows further when live.
+            Text = text, TextWrapping = TextWrapping.Wrap, FontSize = muted ? 15 : BaseLyricSize, Margin = new Thickness(0, 5, 0, 5),
             FontFamily = (FontFamily)FindResource("BodyFont")
         };
         t.SetResourceReference(TextBlock.ForegroundProperty, muted ? "MistBrush" : "PaperBrush");
@@ -199,25 +202,49 @@ public partial class TrackDetailView : UserControl
         Highlight(_now.CurrentLine(DateTime.UtcNow), live: true);
     }
 
+    private const double BaseLyricSize = 18, LiveLyricSize = 28;
+
     private void Highlight(int index, bool live)
     {
         if (index == _currentLine) return;
+        int previous = _currentLine;
         _currentLine = index;
+        LyricsScroller.MaxHeight = live ? 460 : 340;
+        var sung = (Color)FindResource("SignalColor");
+        var rest = (Color)FindResource("PaperColor");
         for (int i = 0; i < LyricsLines.Children.Count; i++)
         {
             if (LyricsLines.Children[i] is not TextBlock t) continue;
             bool current = live && i == index;
-            t.FontWeight = current ? FontWeights.Bold : FontWeights.Normal;
-            t.FontSize = current ? 18 : 15;
-            t.SetResourceReference(TextBlock.ForegroundProperty, current ? "SignalBrush" : "PaperBrush");
-            t.Opacity = !live || current ? 1 : i < index ? 0.45 : 0.75;
+            double opacity = !live || current ? 1 : i < index ? 0.38 : Math.Max(0.45, 0.8 - (i - index) * 0.08);
+            if (current)
+            {
+                t.FontWeight = FontWeights.Bold;
+                t.FontSize = LiveLyricSize;
+                // Karaoke fill over the time until the next line (or a few seconds for the last one).
+                var lines = _lyrics!.Lines;
+                var dur = i + 1 < lines.Count ? lines[i + 1].Time - lines[i].Time : TimeSpan.FromSeconds(4);
+                var pos = _now.Position(DateTime.UtcNow) ?? lines[i].Time;
+                var left = dur - (pos - lines[i].Time);
+                LyricFx.Fill(t, sung, rest, left < TimeSpan.Zero ? TimeSpan.Zero : left > TimeSpan.FromSeconds(12) ? TimeSpan.FromSeconds(12) : left);
+                LyricFx.Enter(t, BaseLyricSize / LiveLyricSize);
+            }
+            else
+            {
+                bool wasCurrent = i == previous && t.FontSize > BaseLyricSize;
+                t.FontWeight = FontWeights.Normal;
+                t.FontSize = BaseLyricSize;
+                t.SetResourceReference(TextBlock.ForegroundProperty, "PaperBrush");
+                if (wasCurrent) LyricFx.Leave(t, LiveLyricSize / BaseLyricSize, opacity);
+                else LyricFx.Still(t, opacity);
+            }
         }
-        // Keep the line being sung in the middle of the box.
+        // Glide so the line being sung sits a little above the middle of the box.
         if (live && index >= 0 && index < LyricsLines.Children.Count && LyricsLines.Children[index] is FrameworkElement line)
         {
             LyricsLines.UpdateLayout();
             var y = line.TransformToAncestor(LyricsLines).Transform(new Point(0, 0)).Y;
-            LyricsScroller.ScrollToVerticalOffset(Math.Max(0, y - LyricsScroller.ViewportHeight / 2 + line.ActualHeight / 2));
+            LyricFx.GlideTo(LyricsScroller, Math.Max(0, y - LyricsScroller.ViewportHeight * 0.4 + line.ActualHeight / 2));
         }
     }
 
@@ -249,11 +276,18 @@ public partial class TrackDetailView : UserControl
 
     private Button PlatformButton(string platform, string url, bool primary)
     {
-        var dot = new System.Windows.Shapes.Ellipse
-        {
-            Width = 10, Height = 10, Margin = new Thickness(0, 0, 10, 0),
-            Fill = new SolidColorBrush(PlatformColors.For(platform)), VerticalAlignment = VerticalAlignment.Center
-        };
+        // The platform's real logo in its colour (dot when there is no logo).
+        FrameworkElement dot = BrandIcons.For(platform) is { } logo
+            ? new System.Windows.Shapes.Path
+            {
+                Data = logo, Stretch = Stretch.Uniform, Width = 17, Height = 17, Margin = new Thickness(0, 0, 10, 0),
+                Fill = new SolidColorBrush(PlatformColors.For(platform)), VerticalAlignment = VerticalAlignment.Center
+            }
+            : new System.Windows.Shapes.Ellipse
+            {
+                Width = 10, Height = 10, Margin = new Thickness(0, 0, 10, 0),
+                Fill = new SolidColorBrush(PlatformColors.For(platform)), VerticalAlignment = VerticalAlignment.Center
+            };
         var label = new TextBlock { Text = primary ? platform : Loc.T("detail.search_youtube"), VerticalAlignment = VerticalAlignment.Center };
         var content = new StackPanel { Orientation = Orientation.Horizontal, Children = { dot, label } };
         var b = new Button
@@ -273,22 +307,43 @@ public partial class TrackDetailView : UserControl
     private void BuildInfo(Track track)
     {
         InfoGrid.Children.Clear();
-        AddInfo(Loc.T("detail.released"), track.ReleaseYear);
+        var released = AddInfo(Loc.T("detail.released"), track.ReleaseYear);
         AddInfo(Loc.T("detail.album"), track.Album);
         AddInfo(Loc.T("detail.genre"), track.Genre);
         AddInfo(Loc.T("detail.label"), track.Label);
         AddInfo(Loc.T("detail.shazimed"), Formats.Times(track.DetectionCount));
         if (track.FirstDetectedAt is { } first) AddInfo(Loc.T("detail.first_time"), Formats.Relative(first), Formats.Full(first));
         if (track.LastDetectedAt is { } last && track.DetectionCount > 1) AddInfo(Loc.T("detail.last_time"), Formats.Relative(last), Formats.Full(last));
+        _ = AddExtrasAsync(track, released);
     }
 
-    private void AddInfo(string label, string? value, string? tooltip = null)
+    /// <summary>More facts from Deezer (exact release date, BPM, length, explicit, featured artists), when found.</summary>
+    private async Task AddExtrasAsync(Track track, StackPanel? released)
     {
-        if (string.IsNullOrWhiteSpace(value)) return;
+        var e = await _extras.GetAsync(track);
+        if (e == null || _track?.Id != track.Id) return;
+        if (e.ReleaseDateValue is { } date)
+        {
+            var text = date.ToString("d MMMM yyyy", Loc.Instance.Culture);
+            if (released?.Children.Count == 2 && released.Children[1] is TextBlock v) v.Text = text;
+            else AddInfo(Loc.T("detail.released"), text);
+        }
+        if (e.Bpm is { } bpm) AddInfo(Loc.T("detail.bpm"), Loc.F("detail.bpm_value", bpm));
+        if (e.DurationSeconds is { } s) AddInfo(Loc.T("detail.duration"), TimeSpan.FromSeconds(s).ToString(s >= 3600 ? @"h\:mm\:ss" : @"m\:ss"));
+        if (e.Explicit) AddInfo(Loc.T("detail.explicit"), Loc.T("detail.explicit_yes"));
+        var featured = e.Contributors.Where(c => !track.Artist.Contains(c, StringComparison.OrdinalIgnoreCase)).ToList();
+        if (featured.Count > 0) AddInfo(Loc.T("detail.contributors"), string.Join(", ", featured));
+        if (e.Isrc != null) AddInfo("ISRC", e.Isrc);
+    }
+
+    private StackPanel? AddInfo(string label, string? value, string? tooltip = null)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
         var panel = new StackPanel { Margin = new Thickness(0, 6, 16, 10), ToolTip = tooltip };
         panel.Children.Add(new TextBlock { Text = label, Style = (Style)Resources["InfoLabel"] });
         panel.Children.Add(new TextBlock { Text = value, Style = (Style)Resources["InfoValue"] });
         InfoGrid.Children.Add(panel);
+        return panel;
     }
 
     private async Task LoadHistoryAsync(Track track)

@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -198,7 +198,8 @@ public partial class SettingsView : UserControl, IRefreshable
     {
         var mode = ThemeMidnight.IsChecked == true ? ThemeMode.Midnight
             : ThemeLight.IsChecked == true ? ThemeMode.Light
-            : ThemeSystem.IsChecked == true ? ThemeMode.System : ThemeMode.Night;
+            : ThemeSystem.IsChecked == true ? ThemeMode.System
+            : ThemeAscii.IsChecked == true ? ThemeMode.Ascii : ThemeMode.Night;
         var g = _settings.GetSettings().General;
         if (g.Theme == mode) return;
         g.Theme = mode;
@@ -236,10 +237,14 @@ public partial class SettingsView : UserControl, IRefreshable
             ThemeMidnight.IsChecked = s.General.Theme == ThemeMode.Midnight;
             ThemeLight.IsChecked = s.General.Theme == ThemeMode.Light;
             ThemeSystem.IsChecked = s.General.Theme == ThemeMode.System;
+            ThemeAscii.IsChecked = s.General.Theme == ThemeMode.Ascii;
 
             EffectAura.IsChecked = s.General.ButtonEffect == ButtonEffect.Aura;
             EffectPulse.IsChecked = s.General.ButtonEffect == ButtonEffect.Pulse;
             EffectOff.IsChecked = s.General.ButtonEffect == ButtonEffect.Off;
+            EffectWaves.IsChecked = s.General.ButtonEffect == ButtonEffect.Waves;
+            EffectParticles.IsChecked = s.General.ButtonEffect == ButtonEffect.Particles;
+            EffectNeon.IsChecked = s.General.ButtonEffect == ButtonEffect.Neon;
             AutoStartSwitch.IsChecked = s.AutoShazam.AutoStart;
             NotifyPopup.IsChecked = s.Notifications.Style == NotificationStyle.Popup;
             NotifyWindows.IsChecked = s.Notifications.Style == NotificationStyle.Windows;
@@ -303,6 +308,9 @@ public partial class SettingsView : UserControl, IRefreshable
         s.AutoShazam.DuplicateWindowMinutes = SelectedValue(DuplicateCombo, 15);
         s.AutoShazam.AutoStart = AutoStartSwitch.IsChecked == true;
         s.General.ButtonEffect = EffectPulse.IsChecked == true ? ButtonEffect.Pulse
+            : EffectWaves.IsChecked == true ? ButtonEffect.Waves
+            : EffectParticles.IsChecked == true ? ButtonEffect.Particles
+            : EffectNeon.IsChecked == true ? ButtonEffect.Neon
             : EffectOff.IsChecked == true ? ButtonEffect.Off : ButtonEffect.Aura;
 
         s.Notifications.Style = NotifyWindows.IsChecked == true ? NotificationStyle.Windows
@@ -450,6 +458,37 @@ public partial class SettingsView : UserControl, IRefreshable
     {
         var v = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
         return v == null ? "2.0" : $"{v.Major}.{v.Minor}.{v.Build}";
+    }
+
+    // ===== Easter egg : 7 clics sur le logo =====
+
+    private int _logoClicks;
+    private DateTime _lastLogoClick;
+
+    /// <summary>Seven quick clicks on the About logo toggle the multicolour mode.</summary>
+    private void AboutLogo_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        var now = DateTime.UtcNow;
+        _logoClicks = now - _lastLogoClick < TimeSpan.FromSeconds(1.2) ? _logoClicks + 1 : 1;
+        _lastLogoClick = now;
+
+        // A little bounce on every click, growing as you get closer.
+        var bounce = new System.Windows.Media.Animation.DoubleAnimation(1 + 0.05 * Math.Min(_logoClicks, 6), 1, TimeSpan.FromMilliseconds(260))
+            { EasingFunction = new System.Windows.Media.Animation.BackEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut } };
+        AboutBadgeScale.BeginAnimation(System.Windows.Media.ScaleTransform.ScaleXProperty, bounce);
+        AboutBadgeScale.BeginAnimation(System.Windows.Media.ScaleTransform.ScaleYProperty, bounce);
+        if (_logoClicks is >= 4 and < 7) ShowSaved(Loc.F("easter.hint", 7 - _logoClicks));
+        if (_logoClicks < 7) return;
+
+        _logoClicks = 0;
+        var g = _settings.GetSettings().General;
+        g.RainbowMode = !g.RainbowMode;
+        ThemeService.SetRainbow(g.RainbowMode);
+        _settings.Save();
+        AboutBadgeSpin.BeginAnimation(System.Windows.Media.RotateTransform.AngleProperty,
+            new System.Windows.Media.Animation.DoubleAnimation(0, 720, TimeSpan.FromMilliseconds(900))
+            { EasingFunction = new System.Windows.Media.Animation.CubicEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut } });
+        ShowSaved(Loc.T(g.RainbowMode ? "easter.on" : "easter.off"));
     }
 
     private void GitHub_Click(object sender, RoutedEventArgs e) => Infrastructure.Shell.Open(RepositoryUrl);

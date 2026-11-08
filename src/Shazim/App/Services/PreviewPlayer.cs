@@ -70,6 +70,13 @@ public sealed class PreviewPlayer : ObservableObject, IDisposable
 
     public bool IsPlayingTrack(string? id) => IsPlaying && id != null && id == TrackId;
 
+    /// <summary>Last preview played and when it stopped (Auto Shazim ignores it for a while).</summary>
+    public string? LastTrackId { get; private set; }
+    public DateTime LastActiveUtc { get; private set; }
+
+    /// <summary>True while a preview plays, and for a few seconds after (its sound may still be in the buffer).</summary>
+    public bool IsAudible(TimeSpan grace) => IsPlaying || IsLoading || DateTime.UtcNow - LastActiveUtc < grace;
+
     /// <summary>Plays the track's preview, or stops it if it is the one playing.</summary>
     public void Toggle(Track track)
     {
@@ -80,6 +87,8 @@ public sealed class PreviewPlayer : ObservableObject, IDisposable
         int generation = _generation;
         ErrorTrackId = null;
         TrackId = track.Id;
+        LastTrackId = track.Id;
+        LastActiveUtc = DateTime.UtcNow;
         IsPlaying = true;
         IsLoading = true;
         // Only web previews: a stored path or another scheme is never opened.
@@ -136,6 +145,7 @@ public sealed class PreviewPlayer : ObservableObject, IDisposable
 
     public void Stop()
     {
+        if (IsPlaying || IsLoading) LastActiveUtc = DateTime.UtcNow;
         _generation++;
         _timer.Stop();
         Release(_output, _reader);

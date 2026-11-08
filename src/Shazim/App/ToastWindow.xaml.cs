@@ -44,10 +44,39 @@ public partial class ToastWindow : Window
             var hwnd = new WindowInteropHelper(this).Handle;
             SetWindowLong(hwnd, GWL_EXSTYLE, GetWindowLong(hwnd, GWL_EXSTYLE) | WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW);
         };
-        Loaded += (_, _) => { Place(); Enter(); _timer.Start(); };
+        Loaded += (_, _) => { Place(); Enter(); StartAura(); _timer.Start(); };
         MouseEnter += (_, _) => _timer.Stop();
         MouseLeave += (_, _) => { if (!_closing) { _timer.Stop(); _timer.Start(); } };
         Show(track, badge);
+    }
+
+    /// <summary>The halo breathes around the card; in multicolour mode it turns through the rainbow.</summary>
+    private void StartAura()
+    {
+        if (Infrastructure.Shell.ReduceMotion) return;
+        var sine = new SineEase { EasingMode = EasingMode.EaseInOut };
+        var period = TimeSpan.FromSeconds(1.6);
+        AuraScale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(0.98, 1.03, period) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = sine });
+        AuraScale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(0.96, 1.08, period) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = sine });
+        Aura.BeginAnimation(OpacityProperty, new DoubleAnimation(0.25, 0.6, period) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = sine });
+        if (Services.ThemeService.IsRainbow)
+        {
+            double h = Services.ThemeService.RainbowHue;
+            var brush = new LinearGradientBrush
+            {
+                StartPoint = new System.Windows.Point(0, 0), EndPoint = new System.Windows.Point(1, 1),
+                GradientStops =
+                {
+                    new GradientStop(Services.ThemeService.FromHue(h), 0),
+                    new GradientStop(Services.ThemeService.FromHue((h + 120) % 360), 0.5),
+                    new GradientStop(Services.ThemeService.FromHue((h + 240) % 360), 1)
+                },
+                RelativeTransform = new RotateTransform(0, 0.5, 0.5)
+            };
+            Aura.Background = brush;
+            ((RotateTransform)brush.RelativeTransform).BeginAnimation(RotateTransform.AngleProperty,
+                new DoubleAnimation(0, 360, TimeSpan.FromSeconds(3)) { RepeatBehavior = RepeatBehavior.Forever });
+        }
     }
 
     /// <summary>Shows another track in the same card (several finds in a row).</summary>

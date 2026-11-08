@@ -24,6 +24,12 @@ public interface IAudioCaptureService
     /// session is disposed. Throws <see cref="AudioCaptureException"/> when the device cannot be opened.
     /// </summary>
     ICaptureSession StartSession(string deviceId);
+
+    /// <summary>
+    /// The application playing loudest on an output device right now ("Spotify", "Google Chrome"...),
+    /// or null (microphone, nothing playing, not available).
+    /// </summary>
+    string? FindPlayingApp(string deviceId) => null;
 }
 
 public interface ICaptureSession : IDisposable

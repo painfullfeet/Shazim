@@ -15,7 +15,7 @@ Aplicación gratuita y de código abierto para Windows que identifica cualquier 
 [![Licencia GPL-3.0](https://img.shields.io/badge/licencia-GPL--3.0-blue)](LICENSE)
 ![Idiomas](https://img.shields.io/badge/idiomas-FR%20%7C%20EN%20%7C%20ES%20%7C%20DE-ff4d6d)
 
-[Français](README.md) · [English](README.en.md) · **Español** · [Deutsch](README.de.md)
+[English](README.md) · [Français](README.fr.md) · **Español** · [Deutsch](README.de.md)
 
 </div>
 
@@ -46,7 +46,7 @@ También puede usar el micrófono para reconocer la música de la habitación, o
 | 💿 **Ficha completa** | Portada, álbum, año, género, sello, avance de 30 s, plataformas (Spotify, Apple Music, Deezer, YouTube Music), veces shazimeada e historial. |
 | 📚 **Biblioteca** | Todas tus canciones, búsqueda, favoritos, orden, avances en la lista, exportación CSV o JSON. |
 | 🔁 **Auto Shazim** | Escucha sin parar en segundo plano y guarda cada canción nueva. |
-| 🌊 **Botón vivo** | El botón reacciona a la música: aura tipo visualizador o pulso del logo al ritmo. |
+| 🌊 **Botón vivo** | El botón reacciona a la música con 5 efectos: Aura, Pulso, Ondas, Partículas y Neón. Y un tema ASCII. |
 | 🎨 **Temas y colores** | 4 temas (*Noche*, *Medianoche* negro puro para OLED, *Claro*, *Seguir a Windows*), 5 colores o el tuyo propio (tono + código hexadecimal). |
 | 🎤 **Letras sincronizadas** | Estilo karaoke en la ficha: la línea que se canta se ilumina y se desplaza sola, con un ajuste ± si hace falta. Fuente: [LRCLIB](https://lrclib.net). |
 | 🪟 **Widget compacto** | Pequeña tarjeta siempre visible: carátula, título, artista, Auto Shazim, botón Shazimear y la línea de la letra. |
@@ -130,7 +130,7 @@ cd Shazim
 
 Creado por **Painfullfeet**, con la ayuda de **[Claude](https://claude.ai)**, el asistente de IA de Anthropic.
 
-Algoritmo de firma: portado de [SongRec](https://github.com/marin-m/SongRec) (GPL-3.0) · Audio: [NAudio](https://github.com/naudio/NAudio) (MIT) · Fuente: [Outfit](https://github.com/Outfitio/Outfit-Fonts) (SIL OFL) · Iconos: [Phosphor](https://phosphoricons.com) (MIT). · Letras: [LRCLIB](https://lrclib.net)
+Algoritmo de firma: portado de [SongRec](https://github.com/marin-m/SongRec) (GPL-3.0) · Audio: [NAudio](https://github.com/naudio/NAudio) (MIT) · Fuente: [Outfit](https://github.com/Outfitio/Outfit-Fonts) (SIL OFL) · Iconos: [Phosphor](https://phosphoricons.com) (MIT). · Letras: [LRCLIB](https://lrclib.net) · Logos: [Simple Icons](https://simpleicons.org) (CC0) · Datos: [Deezer API](https://developers.deezer.com)
 
 Shazim es software libre bajo la licencia **[GNU GPL v3](LICENSE)**.
 

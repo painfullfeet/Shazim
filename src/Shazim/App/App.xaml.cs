@@ -241,6 +241,7 @@ public partial class App : Application
                 services.AddSingleton<MusicVisualizer>();
                 services.AddSingleton<UpdateService>();
                 services.AddSingleton<Core.Lyrics.LyricsService>();
+                services.AddSingleton<Core.Services.TrackExtrasService>();
                 services.AddSingleton<NowPlayingService>();
                 services.AddSingleton<AutoShazamService>();
                 services.AddHostedService(sp => sp.GetRequiredService<AutoShazamService>());
@@ -277,7 +278,8 @@ public partial class App : Application
 
         if (n.Style == NotificationStyle.Popup)
         {
-            var badge = (isAuto ? Loc.T("mainwin.auto_shazim") : Loc.T("toast.found")) + " · " + DateTime.Now.ToString("t", Loc.Instance.Culture);
+            var badge = (isAuto ? Loc.T("mainwin.auto_shazim") : Loc.T("toast.found")) + " · " + DateTime.Now.ToString("t", Loc.Instance.Culture)
+                + (string.IsNullOrEmpty(outcome.SourceApp) ? "" : " · " + outcome.SourceApp);
             if (_toast is { IsLoaded: true })
                 _toast.Show(track, badge);
             else

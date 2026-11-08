@@ -35,7 +35,12 @@ public sealed class MusicVisualizer : IDisposable
     private DateTime _lastData = DateTime.MinValue;
 
     /// <summary>True when audio arrived recently (music is playing).</summary>
-    public bool HasSignal => (DateTime.UtcNow - _lastData) < TimeSpan.FromMilliseconds(300);
+    public bool HasSignal => DevFakeMusic || (DateTime.UtcNow - _lastData) < TimeSpan.FromMilliseconds(300);
+
+    /// <summary>Developer aid (snapshots): synthetic 120 BPM music instead of the PC sound, so effects can be checked silently.</summary>
+    public static bool DevFakeMusic { get; set; }
+
+    private static double FakePhase => DateTime.UtcNow.TimeOfDay.TotalSeconds * 2; // beats at 120 BPM
 
     public void Start(string outputDeviceId)
     {
@@ -99,6 +104,13 @@ public sealed class MusicVisualizer : IDisposable
     /// <summary>Copies the current band levels (0..1) and the bass level.</summary>
     public float Read(float[] bands)
     {
+        if (DevFakeMusic)
+        {
+            double phase = FakePhase, kick = Math.Exp(-(phase % 1) * 6);
+            for (int i = 0; i < bands.Length; i++)
+                bands[i] = (float)Math.Clamp(0.25 + 0.55 * kick * Math.Exp(-i / 14.0) + 0.2 * Math.Sin(i * 0.5 + phase * 3), 0, 1);
+            return (float)(0.3 + 0.6 * kick);
+        }
         lock (_lock)
         {
             Array.Copy(_bands, bands, Math.Min(bands.Length, _bands.Length));
@@ -173,7 +185,7 @@ public sealed class MusicVisualizer : IDisposable
     private int _beatCount;
 
     /// <summary>Increases by one on every beat of the music playing on the PC.</summary>
-    public int BeatCount { get { lock (_lock) return _beatCount; } }
+    public int BeatCount { get { if (DevFakeMusic) return (int)FakePhase; lock (_lock) return _beatCount; } }
 
     /// <summary>Magnitude to 0..1 on a 54 dB scale.</summary>
     private static float Normalize(double magnitude)

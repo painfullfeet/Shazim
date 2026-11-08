@@ -187,6 +187,16 @@ public class IdentificationServiceTests
     }
 
     [Fact]
+    public async Task IgnoredTrack_IsNotSaved()
+    {
+        // Shazim's own preview playing must not end up in the library through Auto Shazim.
+        var (svc, library, _) = Build((_, _) => RecognitionResult.Matched("Shazam", T("preview"), 1));
+        var outcome = await svc.IdentifyAsync(new IdentifyRequest("default", IsAuto: true, MaxDurationMs: 8000) { IgnoreTrack = id => id == T("preview").Id });
+        Assert.NotEqual(IdentifyOutcomeKind.Match, outcome.Kind);
+        Assert.Null(await library.GetTrackAsync(T("preview").Id));
+    }
+
+    [Fact]
     public async Task AutoMode_DuplicateIsNotRecordedTwice()
     {
         var (svc, library, _) = Build((_, _) => RecognitionResult.Matched("Shazam", T("dup"), 1));

@@ -36,6 +36,9 @@ public static class ThemeService
         // Minuit: pure black for OLED screens, neutral greys.
         new Palette(ThemeMode.Midnight, false, Rgb(0x000000), Rgb(0x0C0C10), Rgb(0x1A1A21), Rgb(0x2A2A33), Rgb(0xF4F4F8), Rgb(0x9C9CAB),
             Rgb(0x4FD8E8), Rgb(0xFF7A7A), Argb(0x14FFFFFF), Argb(0x24FFFFFF), Rgb(0x1E1E2A), Rgb(0x2E1A2A)),
+        // ASCII: terminal black with phosphor-green text.
+        new Palette(ThemeMode.Ascii, false, Rgb(0x030603), Rgb(0x081008), Rgb(0x102010), Rgb(0x1C361C), Rgb(0xC8FFC8), Rgb(0x6FBF6F),
+            Rgb(0x4FE88A), Rgb(0xFF6A6A), Argb(0x1433FF66), Argb(0x2433FF66), Rgb(0x0E2A12), Rgb(0x183A18)),
         // Clair: light, with the same violet hint.
         new Palette(ThemeMode.Light, true, Rgb(0xF5F4FA), Rgb(0xFFFFFF), Rgb(0xE9E7F3), Rgb(0xD9D5E8), Rgb(0x1A1730), Rgb(0x5E5978),
             Rgb(0x0A8C9E), Rgb(0xD23B3B), Argb(0x10000000), Argb(0x1C000000), Rgb(0xD9D2F2), Rgb(0xF0D3E2)),
@@ -45,6 +48,48 @@ public static class ThemeService
     public static Palette Current { get; private set; } = Palettes[0];
 
     public static bool IsLight => Current.IsLight;
+
+    /// <summary>The ASCII theme is on (HomeView swaps the logo and adds the text background).</summary>
+    public static bool IsAscii => Current.Key == ThemeMode.Ascii;
+
+    // ===== Mode multicolore (easter egg) =====
+
+    private static System.Windows.Threading.DispatcherTimer? _rainbowTimer;
+
+    public static bool IsRainbow { get; private set; }
+
+    /// <summary>Current hue (0..360) of the rainbow cycle.</summary>
+    public static double RainbowHue { get; private set; }
+
+    /// <summary>Effects are this much bigger in multicolour mode.</summary>
+    public static double EffectBoost => IsRainbow ? 1.6 : 1.0;
+
+    public static void SetRainbow(bool on)
+    {
+        if (on == IsRainbow) return;
+        IsRainbow = on;
+        if (on)
+        {
+            if (_lastAccent != null) RainbowHue = HueOf(_lastAccent.Main);
+            _rainbowTimer ??= new System.Windows.Threading.DispatcherTimer(System.Windows.Threading.DispatcherPriority.Background)
+                { Interval = TimeSpan.FromMilliseconds(90) };
+            _rainbowTimer.Tick -= OnRainbowTick;
+            _rainbowTimer.Tick += OnRainbowTick;
+            _rainbowTimer.Start();
+        }
+        else
+        {
+            _rainbowTimer?.Stop();
+            if (_lastAccent != null) ApplyAccentColors(EffectiveAccent(_lastAccent));
+        }
+        Changed?.Invoke(null, EventArgs.Empty);
+    }
+
+    private static void OnRainbowTick(object? sender, EventArgs e)
+    {
+        RainbowHue = (RainbowHue + 2.4) % 360;
+        ApplyAccentColors(FromColor(FromHsl(RainbowHue, 0.9, 0.6)));
+    }
 
     /// <summary>Raised after the theme or the accent changed (code-built visuals can refresh).</summary>
     public static event EventHandler? Changed;
@@ -60,6 +105,7 @@ public static class ThemeService
     {
         ApplyTheme(g.Theme);
         ApplyAccent(g.Accent, g.CustomAccent);
+        SetRainbow(g.RainbowMode);
     }
 
     /// <summary>Night theme with a preset accent (installer, tests).</summary>
@@ -99,7 +145,7 @@ public static class ThemeService
             _watchingSystem = true;
             SystemEvents.UserPreferenceChanged += OnSystemPreferenceChanged;
         }
-        if (_lastAccent != null) ApplyAccentColors(_lastAccent); // the glow depends on the theme
+        if (_lastAccent != null && !IsRainbow) ApplyAccentColors(EffectiveAccent(_lastAccent)); // the glow depends on the theme
         Changed?.Invoke(null, EventArgs.Empty);
     }
 
@@ -138,9 +184,14 @@ public static class ThemeService
             ? FromColor(c)
             : Find(key);
         _lastAccent = accent;
-        ApplyAccentColors(accent);
+        if (!IsRainbow) ApplyAccentColors(EffectiveAccent(accent));
         Changed?.Invoke(null, EventArgs.Empty);
     }
+
+    /// <summary>The ASCII theme is always phosphor green, like an old terminal.</summary>
+    private static readonly Accent Phosphor = new("ascii", "Phosphore", Rgb(0x33FF66), Rgb(0x1FBF4A), Rgb(0x8CFFAA));
+
+    private static Accent EffectiveAccent(Accent chosen) => IsAscii ? Phosphor : chosen;
 
     private static void ApplyAccentColors(Accent a)
     {

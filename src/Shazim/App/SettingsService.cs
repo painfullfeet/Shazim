@@ -36,6 +36,8 @@ public static class ThemeMode
     public const string Light = "clair";
     /// <summary>Light or dark, like Windows apps.</summary>
     public const string System = "systeme";
+    /// <summary>Terminal look: ASCII logo, text background that moves with the beat.</summary>
+    public const string Ascii = "ascii";
 }
 
 public class UpdateSettings
@@ -70,7 +72,15 @@ public static class ButtonEffect
     public const string Aura = "aura";
     /// <summary>Only the logo, pulsing on the beat.</summary>
     public const string Pulse = "pulse";
+    /// <summary>Concentric rings rippling with the spectrum.</summary>
+    public const string Waves = "waves";
+    /// <summary>Sparks thrown out on every beat.</summary>
+    public const string Particles = "particles";
+    /// <summary>Glowing tube and spinning arcs.</summary>
+    public const string Neon = "neon";
     public const string Off = "off";
+
+    public static readonly string[] All = { Aura, Pulse, Waves, Particles, Neon, Off };
 }
 
 public static class AudioSource
@@ -149,6 +159,9 @@ public class GeneralSettings
 
     /// <summary>How the big button reacts to the music playing on the PC (see ButtonEffect).</summary>
     public string ButtonEffect { get; set; } = global::Shazim.App.ButtonEffect.Aura;
+
+    /// <summary>Easter egg (7 clicks on the About logo): colours cycle, effects get bigger.</summary>
+    public bool RainbowMode { get; set; }
 
     /// <summary>Earlier on/off switch, read once for migration.</summary>
     [JsonPropertyName("reactiveButton")]
@@ -300,7 +313,7 @@ public class SettingsService
         s.Updates.SkippedVersion ??= "";
         if (s.Notifications.Style is not (NotificationStyle.Popup or NotificationStyle.Windows or NotificationStyle.None)) s.Notifications.Style = NotificationStyle.Popup;
         s.Notifications.Enabled = s.Notifications.Style != NotificationStyle.None;
-        if (s.General.Theme is not (ThemeMode.Night or ThemeMode.Midnight or ThemeMode.Light or ThemeMode.System)) s.General.Theme = ThemeMode.Night;
+        if (s.General.Theme is not (ThemeMode.Night or ThemeMode.Midnight or ThemeMode.Light or ThemeMode.System or ThemeMode.Ascii)) s.General.Theme = ThemeMode.Night;
         if (Services.ThemeService.ParseHex(s.General.CustomAccent) == null) s.General.CustomAccent = "#FF4F7E";
         s.Widget.Opacity = Math.Clamp(double.IsFinite(s.Widget.Opacity) ? s.Widget.Opacity : 1, 0.55, 1);
         if (s.Audio.Source is not (AudioSource.Pc or AudioSource.Mic or AudioSource.Both)) s.Audio.Source = AudioSource.Pc;
@@ -312,6 +325,6 @@ public class SettingsService
         s.AutoShazam.IntervalMs = Math.Clamp(s.AutoShazam.IntervalMs, 5000, 3_600_000);
         s.AutoShazam.DuplicateWindowMinutes = Math.Clamp(s.AutoShazam.DuplicateWindowMinutes, 1, 1440);
         s.General.PreviewVolume = Math.Clamp(s.General.PreviewVolume, 0, 1);
-        if (s.General.ButtonEffect is not (ButtonEffect.Aura or ButtonEffect.Pulse or ButtonEffect.Off)) s.General.ButtonEffect = ButtonEffect.Aura;
+        if (Array.IndexOf(ButtonEffect.All, s.General.ButtonEffect) < 0) s.General.ButtonEffect = ButtonEffect.Aura;
     }
 }

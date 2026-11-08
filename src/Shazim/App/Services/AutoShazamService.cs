@@ -21,8 +21,16 @@ public sealed class AutoShazamService : BackgroundService
     private volatile bool _enabled;
     private int _consecutiveErrors;
 
-    public AutoShazamService(IdentificationService identification, SettingsService settings, ILogger<AutoShazamService> logger)
+    private readonly PreviewPlayer _preview;
+
+    public AutoShazamService(IdentificationService identification, SettingsService settings, PreviewPlayer preview, ILogger<AutoShazamService> logger)
     {
+        _preview = preview;
+        // A preview starting mid-listen would be recognised: drop that listen and wait.
+        preview.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(PreviewPlayer.IsPlaying) && preview.IsPlaying) _cycleCts?.Cancel();
+        };
         _identification = identification;
         _settings = settings;
         _logger = logger;
@@ -82,6 +90,14 @@ public sealed class AutoShazamService : BackgroundService
                 continue;
             }
 
+            // Previews played in Shazim are never picked up: pause while one is audible.
+            if (_preview.IsAudible(TimeSpan.FromSeconds(2)))
+            {
+                SetStatus(AutoShazamState.Waiting, () => Loc.T("auto.paused_preview"));
+                try { await _wake.WaitAsync(TimeSpan.FromSeconds(1.5), stoppingToken); } catch (OperationCanceledException) { break; }
+                continue;
+            }
+
             var cfg = _settings.GetSettings();
             TimeSpan wait = TimeSpan.FromMilliseconds(cfg.AutoShazam.IntervalMs);
 
@@ -96,7 +112,10 @@ public sealed class AutoShazamService : BackgroundService
                 SetStatus(AutoShazamState.Listening, () => Loc.T("home.listening"));
 
                 var outcome = await _identification.IdentifyAsync(
-                    new IdentifyRequest(cfg.Audio.DeviceIds(), IsAuto: true, cfg.AutoShazam.CaptureDurationMs, cfg.AutoShazam.DuplicateWindowMinutes),
+                    new IdentifyRequest(cfg.Audio.DeviceIds(), IsAuto: true, cfg.AutoShazam.CaptureDurationMs, cfg.AutoShazam.DuplicateWindowMinutes)
+                    {
+                        IgnoreTrack = id => id == _preview.LastTrackId && _preview.IsAudible(TimeSpan.FromSeconds(20))
+                    },
                     progress, _cycleCts.Token);
 
                 switch (outcome.Kind)

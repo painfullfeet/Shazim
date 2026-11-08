@@ -7,12 +7,18 @@
         <!-- ===== Écoute ===== -->
         <Grid x:Name="ListenPanel">
             <Rectangle Fill="{DynamicResource AccentGlowBrush}" IsHitTestVisible="False"/>
+            <!-- Thème ASCII : fond en caractères qui bat avec la musique -->
+            <TextBlock x:Name="AsciiBack" FontFamily="Consolas" FontSize="12" LineHeight="14" LineStackingStrategy="BlockLineHeight"
+                       Foreground="{DynamicResource SignalBrush}" Opacity="0.32" IsHitTestVisible="False" Visibility="Collapsed"
+                       TextWrapping="NoWrap" ClipToBounds="True"/>
             <Grid Margin="40,0,40,26">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
+                <!-- Shrinks (never grows) when the window is too short for the whole column -->
+                <Viewbox StretchDirection="DownOnly" VerticalAlignment="Center">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                     <TextBlock x:Name="StatusTitle" Text="{infra:T home.touchez_pour_shazimer}" Style="{StaticResource DisplayText}" FontSize="34" FontWeight="Bold"
                                HorizontalAlignment="Center" Margin="0,0,0,34"/>
@@ -28,6 +34,8 @@
                             </ControlTemplate>
                         </Button.Template>
                         <Grid>
+                            <!-- Effets Ondes / Particules / Néon, dessinés au-delà du bouton -->
+                            <infra:FxCanvas x:Name="Fx" Width="560" Height="560" Margin="-130"/>
                             <Ellipse x:Name="Ripple1" Width="196" Height="196" Fill="{DynamicResource SignalSoftBrush}" Opacity="0" RenderTransformOrigin="0.5,0.5">
                                 <Ellipse.RenderTransform><ScaleTransform/></Ellipse.RenderTransform>
                             </Ellipse>
@@ -78,11 +86,16 @@
                                 <Grid.RenderTransform><ScaleTransform x:Name="BreathScale"/></Grid.RenderTransform>
                             <Grid x:Name="Core" Width="196" Height="196" RenderTransformOrigin="0.5,0.5">
                                 <Grid.RenderTransform><ScaleTransform x:Name="CoreScale"/></Grid.RenderTransform>
-                                <Ellipse Fill="{DynamicResource SignalGradientBrush}">
+                                <Ellipse x:Name="CoreDisc" Fill="{DynamicResource SignalGradientBrush}">
                                     <Ellipse.Effect>
                                         <DropShadowEffect BlurRadius="40" ShadowDepth="0" Opacity="0.55" Color="Black"/>
                                     </Ellipse.Effect>
                                 </Ellipse>
+                                <Ellipse x:Name="AsciiDisc" Visibility="Collapsed" Fill="{DynamicResource InkBrush}" Stroke="{DynamicResource SignalBrush}"
+                                         StrokeThickness="2" StrokeDashArray="2 2"/>
+                                <TextBlock x:Name="AsciiLogo" Visibility="Collapsed" FontFamily="Consolas" FontSize="17" FontWeight="Bold"
+                                           Foreground="{DynamicResource SignalBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           IsHitTestVisible="False" TextAlignment="Left"/>
                                 <Image x:Name="LogoImage" Width="84" Height="84" RenderOptions.BitmapScalingMode="HighQuality" Visibility="Collapsed" IsHitTestVisible="False"/>
                                 <Path x:Name="CoreGlyph" Fill="White" Stretch="Uniform" Width="70" Height="70" IsHitTestVisible="False"
                                       Data="M0,4 h2 v6 h-2 z M3.5,1 h2 v12 h-2 z M7,3 h2 v8 h-2 z M10.5,5 h2 v4 h-2 z"/>
@@ -105,9 +118,44 @@
                     </Button>
                     <TextBlock x:Name="HotkeyHint" Style="{StaticResource MutedText}" FontSize="11" HorizontalAlignment="Center" Margin="0,10,0,0" Opacity="0.7"/>
                 </StackPanel>
+                </Viewbox>
 
                 <!-- Récemment -->
-                <Grid Grid.Row="1" x:Name="RecentSection" Visibility="Collapsed">
+                <StackPanel Grid.Row="1">
+                    <!-- Auto Shazim : petite carte au lieu de la fiche plein écran -->
+                    <Border x:Name="AutoCard" Visibility="Collapsed" Margin="0,0,0,14" HorizontalAlignment="Center" Width="460"
+                            CornerRadius="16" Background="{DynamicResource NightBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1"
+                            Padding="10" Cursor="Hand" MouseLeftButtonUp="AutoCard_Click" RenderTransformOrigin="0.5,0.5">
+                        <Border.RenderTransform><TranslateTransform x:Name="AutoCardSlide"/></Border.RenderTransform>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="56"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid Width="56" Height="56">
+                                <Border CornerRadius="9" Background="{DynamicResource ArtPlaceholderBrush}">
+                                    <TextBlock x:Name="AutoInitial" Style="{StaticResource SectionTitle}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <Border CornerRadius="9"><Border.Background><ImageBrush x:Name="AutoArt" Stretch="UniformToFill"/></Border.Background></Border>
+                            </Grid>
+                            <StackPanel Grid.Column="1" Margin="12,0,8,0" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <Ellipse Width="6" Height="6" Fill="{DynamicResource SignalBrush}" VerticalAlignment="Center" Margin="0,1,6,0"/>
+                                    <TextBlock x:Name="AutoBadge" FontSize="11" Foreground="{DynamicResource SignalBrush}"/>
+                                </StackPanel>
+                                <TextBlock x:Name="AutoTitle" Style="{StaticResource BodyText}" FontSize="15" FontWeight="SemiBold" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock x:Name="AutoArtist" Style="{StaticResource MutedText}" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                                <StackPanel x:Name="AutoSourceRow" Orientation="Horizontal" Margin="0,3,0,0">
+                                    <infra:IconView Data="{StaticResource IconAppWindow}" Width="12" Height="12" Foreground="{DynamicResource MistBrush}" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                    <TextBlock x:Name="AutoSource" Style="{StaticResource MutedText}" FontSize="11" TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <Button Grid.Column="2" Style="{StaticResource IconButton}" Tag="{StaticResource IconX}" Width="28" Height="28" FontSize="11"
+                                    VerticalAlignment="Top" Click="AutoCardClose_Click" ToolTip="{infra:T toast.close}" AutomationProperties.Name="{infra:T toast.close}"/>
+                        </Grid>
+                    </Border>
+                <Grid x:Name="RecentSection" Visibility="Collapsed">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -150,6 +198,7 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </Grid>
+                </StackPanel>
             </Grid>
         </Grid>
 

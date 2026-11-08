@@ -205,8 +205,14 @@ public partial class MiniWindow : Window
         string Line(int k) => k >= 0 && k < lines.Count ? (lines[k].Text.Length > 0 ? lines[k].Text : "♪") : "";
         LyricNow.Text = i < 0 ? "♪" : Line(i);
         LyricNext.Text = Line(i + 1);
-        if (!Infrastructure.Shell.ReduceMotion)
-            LyricNow.BeginAnimation(OpacityProperty, new DoubleAnimation(0.3, 1, TimeSpan.FromMilliseconds(220)));
+        // Same motion as the track page: the line rises in, un-blurs and fills like karaoke.
+        var sung = (Color)FindResource("SignalColor");
+        var rest = (Color)FindResource("PaperColor");
+        var dur = i >= 0 && i + 1 < lines.Count ? lines[i + 1].Time - lines[i].Time : TimeSpan.Zero;
+        Infrastructure.LyricFx.Fill(LyricNow, sung, rest, dur > TimeSpan.FromSeconds(12) ? TimeSpan.FromSeconds(12) : dur);
+        Infrastructure.LyricFx.Enter(LyricNow, 0.9, 10);
+        Infrastructure.LyricFx.Enter(LyricNext, 0.96, 8);
+        LyricNext.Opacity = 0.75;
     }
 
     // ===== Actions =====
