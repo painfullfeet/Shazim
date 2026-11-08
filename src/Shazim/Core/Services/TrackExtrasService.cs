@@ -92,7 +92,8 @@ public sealed class TrackExtrasService
     private async Task<TrackExtras?> FetchAsync(Track track, CancellationToken ct)
     {
         string artist = MainArtist(track.Artist), title = CleanTitle(track.Title);
-        var q = Uri.EscapeDataString($"artist:\"{artist}\" track:\"{title}\"");
+        // Plain search (Deezer's "artist:" / "track:" syntax returns nothing nowadays); Pick() checks artist and title.
+        var q = Uri.EscapeDataString($"{artist} {title}");
         var search = await GetJsonAsync<SearchAnswer>($"{Api}search?q={q}&limit=8", ct).ConfigureAwait(false);
         var hit = Pick(search?.Data, artist, title);
         if (hit == null) return null;
